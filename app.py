@@ -10,7 +10,6 @@ init_db()
 import os
 from db import DB_PATH
 
-# If the database file doesn't exist, generate all mock data and create it.
 if not os.path.exists(DB_PATH):
     print("⚠️ Database not found. Generating fresh mock data...")
     from seed import generate

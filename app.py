@@ -2,7 +2,6 @@ import streamlit as st
 from db import init_db
 import auth
 
-# ---- MUST BE FIRST STREAMLIT COMMAND ----
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
@@ -10,25 +9,47 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---- Initialize Database ----
 init_db()
 
-# ---- HIDE STREAMLIT DEFAULT NAV + VIEW LESS + TITLE ----
+# ---- HIDE SHUDHU "VIEW LESS" AR TITLE ----
 st.markdown("""
 <style>
-    .stSidebarNav { display: none !important; }
-    .stSidebar .st-emotion-cache-1r6slb0 { display: none !important; }
-    .stSidebar .st-emotion-cache-1v3fvcr { display: none !important; }
-    .stSidebar .stPageLink { display: none !important; }
-    .stSidebar .st-emotion-cache-1wrcr25 { display: none !important; }
-    .stSidebar .st-emotion-cache-1v3fvcr + div { display: none !important; }
-    .stSidebar ul { display: none !important; }
-    .stSidebar a[data-testid="stPageLink"] { display: none !important; }
-    .stSidebar button[kind="secondary"] { display: none !important; }
-    .stSidebar .st-emotion-cache-16idsys { display: none !important; }
+    /* Hide "View less" button */
+    .stSidebar button[kind="secondary"] {
+        display: none !important;
+    }
     
-    /* Remove sidebar header (DriveBD title) */
+    /* Hide sidebar title (DriveBD) */
     .stSidebar > div:first-child > div:first-child {
+        display: none !important;
+    }
+    
+    /* Hide Streamlit er automatic navigation */
+    .stSidebarNav {
+        display: none !important;
+    }
+    .stSidebar .st-emotion-cache-1r6slb0 {
+        display: none !important;
+    }
+    .stSidebar .st-emotion-cache-1v3fvcr {
+        display: none !important;
+    }
+    .stSidebar .stPageLink {
+        display: none !important;
+    }
+    .stSidebar .st-emotion-cache-1wrcr25 {
+        display: none !important;
+    }
+    .stSidebar .st-emotion-cache-1v3fvcr + div {
+        display: none !important;
+    }
+    .stSidebar ul {
+        display: none !important;
+    }
+    .stSidebar a[data-testid="stPageLink"] {
+        display: none !important;
+    }
+    .stSidebar .st-emotion-cache-16idsys {
         display: none !important;
     }
 </style>
@@ -36,7 +57,7 @@ st.markdown("""
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    # Only app menu - NO TITLE
+    # SHUDHU MENU - KICHU TITLE NEI
     st.markdown("**app**")
     
     pages = {

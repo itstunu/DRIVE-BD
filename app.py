@@ -13,103 +13,41 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- SIMPLE CSS ----
-st.markdown("""
-<style>
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #f0f2f6 !important;
-        padding-top: 0.5rem;
-    }
-    
-    .sidebar-header {
-        font-size: 1.8rem !important;
-        font-weight: 700 !important;
-        color: #0B5FFF !important;
-        text-align: center !important;
-        padding: 0.5rem 0 !important;
-        border-bottom: 2px solid #ddd !important;
-    }
-    
-    .sidebar-subheader {
-        color: #666 !important;
-        font-size: 0.7rem !important;
-        text-align: center !important;
-        padding-bottom: 1rem !important;
-        border-bottom: 1px solid #ddd !important;
-    }
-    
-    .user-card {
-        background: #ffffff !important;
-        padding: 12px !important;
-        border-radius: 10px !important;
-        margin: 10px 0 !important;
-        border: 1px solid #ddd !important;
-    }
-    
-    .user-name {
-        color: #1a1a2e !important;
-        margin: 0 !important;
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
-    }
-    
-    .user-role {
-        color: #555 !important;
-        margin: 0 !important;
-        font-size: 0.75rem !important;
-    }
-    
-    /* Main header */
-    .main-header {
-        font-size: 2.4rem;
-        font-weight: 700;
-        color: #0B5FFF;
-        margin-bottom: 0;
-    }
-    
-    .sub-header {
-        color: #555;
-        font-size: 1.05rem;
-        margin-top: 0;
-    }
-    
-    .metric-card {
-        background: #ffffff;
-        padding: 16px;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    div.stButton > button {
-        background-color: #0B5FFF;
-        color: white;
-        border-radius: 8px;
-        border: none;
-    }
-    
-    div.stButton > button:hover {
-        background-color: #0847C4;
-        color: white;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # ---- SIDEBAR ----
 with st.sidebar:
-    st.markdown('<p class="sidebar-header">🚗 DriveBD</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sidebar-subheader">Smart Driver & Vehicle Portal</p>', unsafe_allow_html=True)
+    st.markdown("### 🚗 DriveBD")
+    st.markdown("Smart Driver & Vehicle Portal")
+    st.markdown("---")
     
     if auth.is_logged_in():
         user = auth.current_user()
+        st.markdown(f"**👤 {user['name']}**")
+        st.markdown(f"*{user['role'].title()}*")
+        st.markdown("---")
         
-        st.markdown(f"""
-        <div class="user-card">
-            <p class="user-name">👤 {user['name']}</p>
-            <p class="user-role">{user['role'].title()}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # ---- CUSTOM NAVIGATION MENU ----
+        st.markdown("**app**")
+        
+        # Create clickable navigation links
+        pages = {
+            "📊 Dashboard": "1_Dashboard",
+            "🚗 Vehicles": "2_Vehicles",
+            "⚠️ Violations": "3_Violations",
+            "💰 Payments": "4_Payments",
+            "📄 Documents": "5_Documents",
+            "🔧 Service History": "6_Service_History",
+            "🔔 Notifications": "7_Notifications",
+            "⚖️ Appeals": "8_Appeals",
+            "👑 Admin": "9_Admin",
+            "📈 Reports": "10_Reports",
+            "📉 Analytics": "11_Analytics",
+            "🔌 Mock BRTA API": "12_Mock_BRTA_API",
+            "🤖 AI Demo": "13_AI_Demo"
+        }
+        
+        for label, page in pages.items():
+            if st.button(label, key=page, use_container_width=True):
+                st.switch_page(f"pages/{page}.py")
         
         st.markdown("---")
         
@@ -122,23 +60,27 @@ with st.sidebar:
 # ---- MAIN APP ----
 if auth.is_logged_in():
     user = auth.current_user()
-    st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal</p>', unsafe_allow_html=True)
+    st.title("🚗 DriveBD")
+    st.subheader("Smart Driver & Vehicle Owner Portal")
     st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
+    st.info("Use the sidebar to navigate to Dashboard, Vehicles, Violations, Payments and other modules.")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f'<div class="metric-card"><b>📋 Role</b><br>{user["role"].title()}</div>', unsafe_allow_html=True)
+        st.metric("📋 Role", user["role"].title())
     with col2:
-        st.markdown(f'<div class="metric-card"><b>📧 Email</b><br>{user["email"]}</div>', unsafe_allow_html=True)
+        st.metric("📧 Email", user["email"])
     with col3:
-        st.markdown('<div class="metric-card"><b>✅ Status</b><br>Active</div>', unsafe_allow_html=True)
+        st.metric("✅ Status", "Active")
 else:
     left, right = st.columns([1.1, 1])
     with left:
-        st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
-        st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal for Bangladesh</p>', unsafe_allow_html=True)
-        st.write("DriveBD is a unified portal for vehicle owners and drivers to manage registrations, traffic violations, fines, documents, service history and more.")
+        st.title("🚗 DriveBD")
+        st.subheader("Smart Driver & Vehicle Owner Portal for Bangladesh")
+        st.write("""
+        DriveBD is a unified portal for vehicle owners and drivers to manage registrations,
+        traffic violations, fines, documents, service history and more.
+        """)
         st.markdown("""
         **Demo accounts:**
         - 👤 Owner: `demo@drivebd.gov.bd` / `Demo@123`

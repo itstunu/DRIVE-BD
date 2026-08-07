@@ -42,48 +42,27 @@ with st.sidebar:
         st.markdown("---")
         st.markdown("### 📋 Navigation")
         
-        # Page links using st.page_link (works in newer Streamlit)
-        try:
-            st.page_link("app.py", label="🏠 Home", icon="🏠")
-            st.page_link("pages/1_Dashboard.py", label="📊 Dashboard", icon="📊")
-            st.page_link("pages/2_Vehicles.py", label="🚗 Vehicles", icon="🚗")
-            st.page_link("pages/3_Violations.py", label="🚨 Violations", icon="🚨")
-            st.page_link("pages/4_Payments.py", label="💳 Payments", icon="💳")
-            st.page_link("pages/5_Documents.py", label="📄 Documents", icon="📄")
-            st.page_link("pages/6_Service_History.py", label="🔧 Service History", icon="🔧")
-            st.page_link("pages/7_Notifications.py", label="🔔 Notifications", icon="🔔")
-            st.page_link("pages/8_Appeals.py", label="⚖️ Appeals", icon="⚖️")
-            
-            if user['role'].lower() in ['admin', 'administrator']:
-                st.markdown("---")
-                st.markdown("### 🔐 Admin")
-                st.page_link("pages/9_Admin.py", label="🛡️ Admin Panel", icon="🛡️")
-                st.page_link("pages/10_Reports.py", label="📈 Reports", icon="📈")
-                st.page_link("pages/11_Analytics.py", label="📊 Analytics", icon="📊")
-                st.page_link("pages/12_Mock_BRTA_API.py", label="🔌 Mock BRTA API", icon="🔌")
-                st.page_link("pages/13_AI_Demo.py", label="🧠 AI Demo", icon="🧠")
-        except:
-            # Fallback for older Streamlit versions
-            st.markdown("[🏠 Home](/)")
-            st.markdown("[📊 Dashboard](/Dashboard)")
-            st.markdown("[🚗 Vehicles](/Vehicles)")
-            st.markdown("[🚨 Violations](/Violations)")
-            st.markdown("[💳 Payments](/Payments)")
-            st.markdown("[📄 Documents](/Documents)")
-            st.markdown("[🔧 Service History](/Service_History)")
-            st.markdown("[🔔 Notifications](/Notifications)")
-            st.markdown("[⚖️ Appeals](/Appeals)")
-            
-            if user['role'].lower() in ['admin', 'administrator']:
-                st.markdown("---")
-                st.markdown("### 🔐 Admin")
-                st.markdown("[🛡️ Admin Panel](/Admin)")
-                st.markdown("[📈 Reports](/Reports)")
-                st.markdown("[📊 Analytics](/Analytics)")
-                st.markdown("[🔌 Mock BRTA API](/Mock_BRTA_API)")
-                st.markdown("[🧠 AI Demo](/AI_Demo)")
+        # Use markdown links (works in all Streamlit versions)
+        st.markdown("🏠 [Home](/)")
+        st.markdown("📊 [Dashboard](/Dashboard)")
+        st.markdown("🚗 [Vehicles](/Vehicles)")
+        st.markdown("🚨 [Violations](/Violations)")
+        st.markdown("💳 [Payments](/Payments)")
+        st.markdown("📄 [Documents](/Documents)")
+        st.markdown("🔧 [Service History](/Service_History)")
+        st.markdown("🔔 [Notifications](/Notifications)")
+        st.markdown("⚖️ [Appeals](/Appeals)")
+        
+        if user['role'].lower() in ['admin', 'administrator']:
+            st.markdown("---")
+            st.markdown("### 🔐 Admin")
+            st.markdown("🛡️ [Admin](/Admin)")
+            st.markdown("📈 [Reports](/Reports)")
+            st.markdown("📊 [Analytics](/Analytics)")
+            st.markdown("🔌 [Mock BRTA API](/Mock_BRTA_API)")
+            st.markdown("🧠 [AI Demo](/AI_Demo)")
     else:
-        st.info("👈 Please log in")
+        st.info("👈 Please log in to access the dashboard")
 
 # ---- MAIN APP CONTENT ----
 if auth.is_logged_in():

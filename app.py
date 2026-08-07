@@ -12,7 +12,7 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- Sidebar ----
+# ---- SIDEBAR (ONLY user info + logout) ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
     st.markdown("---")
@@ -27,27 +27,6 @@ with st.sidebar:
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
             st.rerun()
-        
-        # ---- SIMPLE NAVIGATION LINKS ----
-        st.markdown("---")
-        st.markdown("### 📋 Navigation")
-        st.markdown("[📊 Dashboard](/1_Dashboard)")
-        st.markdown("[🚗 Vehicles](/2_Vehicles)")
-        st.markdown("[🚨 Violations](/3_Violations)")
-        st.markdown("[💳 Payments](/4_Payments)")
-        st.markdown("[📄 Documents](/5_Documents)")
-        st.markdown("[🔧 Service History](/6_Service_History)")
-        st.markdown("[🔔 Notifications](/7_Notifications)")
-        st.markdown("[⚖️ Appeals](/8_Appeals)")
-        
-        if user['role'].lower() in ['admin', 'administrator']:
-            st.markdown("---")
-            st.markdown("### 🔐 Admin")
-            st.markdown("[🛡️ Admin Panel](/9_Admin)")
-            st.markdown("[📈 Reports](/10_Reports)")
-            st.markdown("[📊 Analytics](/11_Analytics)")
-            st.markdown("[🔌 Mock BRTA API](/12_Mock_BRTA_API)")
-            st.markdown("[🧠 AI Demo](/13_AI_Demo)")
     else:
         st.info("👈 Please log in")
 
@@ -66,24 +45,6 @@ if auth.is_logged_in():
         st.metric("Email", user['email'])
     with col3:
         st.metric("User ID", user['user_id'][:8] + "...")
-    
-    st.divider()
-    st.subheader("Quick Actions")
-    
-    # ---- BUTTONS FOR QUICK ACTIONS ----
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        if st.button("📊 Dashboard", use_container_width=True):
-            st.switch_page("pages/1_Dashboard.py")
-    with c2:
-        if st.button("🚗 Vehicles", use_container_width=True):
-            st.switch_page("pages/2_Vehicles.py")
-    with c3:
-        if st.button("🚨 Violations", use_container_width=True):
-            st.switch_page("pages/3_Violations.py")
-    with c4:
-        if st.button("💳 Payments", use_container_width=True):
-            st.switch_page("pages/4_Payments.py")
 else:
     # ---- LOGIN PAGE ----
     left, right = st.columns([1.1, 1])

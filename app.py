@@ -70,9 +70,10 @@ with st.sidebar:
         st.info("👋 Please log in")
 
 # ============================================================
-# FRONT PAGE / LOGIN
+# FRONT PAGE (Login/Register) - MAIN CONTENT E SHOW KORBE
 # ============================================================
 if not auth.is_logged_in():
+    # ETAI FRONT PAGE - MAIN CONTENT E DEKHA JABE
     st.title("🚗 DriveBD")
     st.subheader("Smart Driver & Vehicle Owner Portal for Bangladesh")
     st.write("Manage registrations, violations, payments, documents, and more.")
@@ -107,6 +108,9 @@ if not auth.is_logged_in():
                     if name and email and password:
                         ok, msg = auth.register_user(name, email, password, role, nid, phone)
                         st.success(msg) if ok else st.error(msg)
+    
+    st.divider()
+    st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")
 
 # ============================================================
 # DASHBOARD / ALL MODULES (LOGGED IN)
@@ -392,5 +396,5 @@ else:
             if msg:
                 st.info("🤖 Speeding fines range from $50 to $500.")
 
-st.divider()
-st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")
+    st.divider()
+    st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

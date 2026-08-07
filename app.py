@@ -48,19 +48,28 @@ if auth.is_logged_in():
     
     st.divider()
     st.subheader("Quick Actions")
+    
+    # Use st.page_link (works in newer Streamlit)
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        if st.button("📊 Dashboard", use_container_width=True):
-            st.switch_page("pages/1_Dashboard.py")
+        st.page_link("pages/1_Dashboard.py", label="📊 Dashboard", icon="📊")
     with col2:
-        if st.button("🚗 Vehicles", use_container_width=True):
-            st.switch_page("pages/2_Vehicles.py")
+        st.page_link("pages/2_Vehicles.py", label="🚗 Vehicles", icon="🚗")
     with col3:
-        if st.button("🚨 Violations", use_container_width=True):
-            st.switch_page("pages/3_Violations.py")
+        st.page_link("pages/3_Violations.py", label="🚨 Violations", icon="🚨")
     with col4:
-        if st.button("💳 Payments", use_container_width=True):
-            st.switch_page("pages/4_Payments.py")
+        st.page_link("pages/4_Payments.py", label="💳 Payments", icon="💳")
+    
+    # Second row
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.page_link("pages/5_Documents.py", label="📄 Documents", icon="📄")
+    with col2:
+        st.page_link("pages/6_Service_History.py", label="🔧 Service", icon="🔧")
+    with col3:
+        st.page_link("pages/7_Notifications.py", label="🔔 Notifications", icon="🔔")
+    with col4:
+        st.page_link("pages/8_Appeals.py", label="⚖️ Appeals", icon="⚖️")
 else:
     # ---- LOGIN PAGE ----
     left, right = st.columns([1.1, 1])

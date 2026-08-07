@@ -8,12 +8,12 @@ init_db()
 
 # --- AUTO-SEED BLOCK FOR STREAMLIT CLOUD ---
 import os
-from utils.db import DB_PATH
+from db import DB_PATH  # ✅ CHANGED: from utils.db import DB_PATH → from db import DB_PATH
 
 # If the database file doesn't exist, generate all mock data and create it.
 if not os.path.exists(DB_PATH):
     print("⚠️ Database not found. Generating fresh mock data...")
-    from utils.seed import generate
+    from seed import generate  # ✅ CHANGED: from utils.seed import generate → from seed import generate
     generate()
     print("✅ Database seeding complete.")
 # --------------------------------------------

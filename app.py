@@ -3,12 +3,7 @@ from db import init_db
 import auth
 
 # ---- MUST BE FIRST STREAMLIT COMMAND ----
-st.set_page_config(
-    page_title="DriveBD - Smart Driver & Vehicle Portal",
-    page_icon="🚗",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+
 
 # ---- Initialize Database ----
 init_db()
@@ -46,7 +41,6 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hide the "View less" and similar elements */
     .stSidebar .st-emotion-cache-1v3fvcr + div {
         display: none !important;
     }

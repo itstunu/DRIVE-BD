@@ -20,7 +20,7 @@ with st.sidebar:
     st.markdown("---")
     
     if auth.is_logged_in():
-        # ---- CUSTOM NAVIGATION MENU ----
+        # ---- CUSTOM NAVIGATION MENU (ONLY ONCE!) ----
         st.markdown("**app**")
         
         # Create clickable navigation links
@@ -55,19 +55,42 @@ with st.sidebar:
 # ---- MAIN APP ----
 if auth.is_logged_in():
     user = auth.current_user()
+    
+    # Main content
     st.title("🚗 DriveBD")
     st.subheader("Smart Driver & Vehicle Owner Portal")
     st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
+    
+    # Use st.columns with st.markdown to display email as plain text
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
+            <p style="font-size:12px; color:#888; margin:0;">📋 ROLE</p>
+            <p style="font-size:18px; font-weight:bold; margin:5px 0 0 0;">""" + user["role"].title() + """</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
+            <p style="font-size:12px; color:#888; margin:0;">📧 EMAIL</p>
+            <p style="font-size:14px; font-weight:bold; margin:5px 0 0 0; word-break:break-all;">""" + user["email"] + """</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
+            <p style="font-size:12px; color:#888; margin:0;">✅ STATUS</p>
+            <p style="font-size:18px; font-weight:bold; margin:5px 0 0 0; color:#00C853;">Active</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
     st.info("Use the sidebar to navigate to Dashboard, Vehicles, Violations, Payments and other modules.")
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("📋 Role", user["role"].title())
-    with col2:
-        # Email as plain text - NO LINK
-        st.metric("📧 Email", user["email"])
-    with col3:
-        st.metric("✅ Status", "Active")
 else:
     left, right = st.columns([1.1, 1])
     with left:

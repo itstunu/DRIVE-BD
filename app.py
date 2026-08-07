@@ -67,16 +67,15 @@ with st.sidebar:
             st.session_state.page = "Dashboard"
             st.rerun()
     else:
-        st.info("👋 Please log in")
+        st.info("👋 Please log in to access the application.")
 
 # ============================================================
-# FRONT PAGE (Login/Register) - MAIN CONTENT E SHOW KORBE
+# MAIN CONTENT - FRONT PAGE (Login/Register)
 # ============================================================
 if not auth.is_logged_in():
-    # ETAI FRONT PAGE - MAIN CONTENT E DEKHA JABE
     st.title("🚗 DriveBD")
     st.subheader("Smart Driver & Vehicle Owner Portal for Bangladesh")
-    st.write("Manage registrations, violations, payments, documents, and more.")
+    st.write("Manage registrations, violations, payments, documents, and service history.")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -95,7 +94,7 @@ if not auth.is_logged_in():
                     if auth.login(email, password):
                         st.rerun()
                     else:
-                        st.error("Invalid credentials")
+                        st.error("Invalid email or password.")
         with tab2:
             with st.form("register"):
                 name = st.text_input("Full Name")
@@ -107,13 +106,16 @@ if not auth.is_logged_in():
                 if st.form_submit_button("Create Account", use_container_width=True):
                     if name and email and password:
                         ok, msg = auth.register_user(name, email, password, role, nid, phone)
-                        st.success(msg) if ok else st.error(msg)
+                        if ok:
+                            st.success(msg)
+                        else:
+                            st.error(msg)
     
     st.divider()
     st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")
 
 # ============================================================
-# DASHBOARD / ALL MODULES (LOGGED IN)
+# DASHBOARD & ALL MODULES (After Login)
 # ============================================================
 else:
     user = auth.current_user()
@@ -171,16 +173,16 @@ else:
                             'status': status
                         }
                         if add_vehicle_to_db(data):
-                            st.success("✅ Registered!")
+                            st.success("✅ Vehicle registered successfully!")
                             st.rerun()
                         else:
-                            st.error("❌ Failed")
+                            st.error("❌ Registration failed. Number may already exist.")
         vehicles = get_vehicles(user_id)
         if vehicles:
             df = pd.DataFrame(vehicles)
             st.dataframe(df[['registration_number','make','model','year','color','status']], use_container_width=True, hide_index=True)
         else:
-            st.info("No vehicles.")
+            st.info("No vehicles registered yet.")
 
     # ---------- VIOLATIONS ----------
     elif page == "⚠️ Violations":
@@ -208,7 +210,7 @@ else:
                                 'status': status
                             }
                             if add_violation_to_db(data):
-                                st.success("✅ Recorded!")
+                                st.success("✅ Violation recorded!")
                                 st.rerun()
         violations = get_violations()
         if violations:
@@ -220,14 +222,14 @@ else:
                 ns = st.selectbox("New Status", ["pending","paid","appealed"])
                 if st.button("Update"):
                     if update_violation_status(vid, ns):
-                        st.success("✅ Updated!")
+                        st.success("✅ Status updated!")
                         st.rerun()
         else:
-            st.info("No violations.")
+            st.info("No violations found.")
 
     # ---------- PAYMENTS ----------
     elif page == "💰 Payments":
-        st.title("💰 Payments")
+        st.title("💰 Payment Management")
         with st.expander("💳 Make Payment"):
             violations = get_violations()
             pending = [v for v in violations if v.get('status') == 'pending']
@@ -236,7 +238,7 @@ else:
                     opts = {v['id']: f"{v['vehicle_number']} - ${v['fine_amount']}" for v in pending}
                     sel = st.selectbox("Violation", list(opts.keys()), format_func=lambda x: opts[x])
                     method = st.selectbox("Method", ["cash","card","mobile"])
-                    if st.form_submit_button("Pay"):
+                    if st.form_submit_button("Pay Now"):
                         v = next(x for x in pending if x['id'] == sel)
                         data = {
                             'violation_id': sel,
@@ -248,10 +250,10 @@ else:
                         }
                         if add_payment_to_db(data):
                             update_violation_status(sel, 'paid')
-                            st.success(f"✅ Paid ${v['fine_amount']}!")
+                            st.success(f"✅ Paid ${v['fine_amount']} successfully!")
                             st.rerun()
             else:
-                st.info("No pending violations.")
+                st.info("No pending violations to pay.")
         payments = get_payments(user_id)
         if payments:
             df = pd.DataFrame(payments)
@@ -259,17 +261,17 @@ else:
             total = sum(p.get('amount',0) for p in payments if p.get('status')=='completed')
             st.metric("💰 Total Paid", f"${total:,.2f}")
         else:
-            st.info("No payments.")
+            st.info("No payment history.")
 
     # ---------- DOCUMENTS ----------
     elif page == "📄 Documents":
-        st.title("📄 Documents")
-        with st.expander("📤 Upload"):
+        st.title("📄 Document Management")
+        with st.expander("📤 Upload Document"):
             with st.form("upload_doc"):
-                name = st.text_input("Name *")
+                name = st.text_input("Document Name *")
                 dtype = st.selectbox("Type", ["Registration","Insurance","Tax Token","Pollution","Fitness","Other"])
-                expiry = st.date_input("Expiry")
-                file = st.file_uploader("File", type=['pdf','jpg','png'])
+                expiry = st.date_input("Expiry Date")
+                file = st.file_uploader("Choose File", type=['pdf','jpg','png'])
                 if st.form_submit_button("Upload"):
                     if name and file:
                         data = {
@@ -281,23 +283,23 @@ else:
                             'verification_status': 'pending'
                         }
                         if add_document_to_db(data):
-                            st.success("✅ Uploaded!")
+                            st.success("✅ Document uploaded!")
                             st.rerun()
         docs = get_documents(user_id)
         if docs:
             df = pd.DataFrame(docs)
             st.dataframe(df[['document_name','document_type','upload_date','expiry_date','verification_status']], use_container_width=True, hide_index=True)
         else:
-            st.info("No documents.")
+            st.info("No documents uploaded.")
 
     # ---------- SERVICE HISTORY ----------
     elif page == "🔧 Service History":
         st.title("🔧 Service History")
-        st.info("Service records will appear here.")
+        st.info("Service history tracking will be available here.")
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Services", "0")
         c2.metric("Last Service", "N/A")
-        c3.metric("Total Spent", "$0")
+        c3.metric("Total Spent", "$0.00")
 
     # ---------- NOTIFICATIONS ----------
     elif page == "🔔 Notifications":
@@ -305,14 +307,17 @@ else:
         notifs = get_notifications(user_id)
         if notifs:
             for n in notifs:
-                st.markdown(f"**{n.get('title','')}** - {n.get('message','')}")
+                if n.get('is_read', False):
+                    st.markdown(f"**{n.get('title','')}** - {n.get('message','')}")
+                else:
+                    st.markdown(f"🔔 **{n.get('title','')}** - {n.get('message','')}")
                 st.divider()
         else:
-            st.info("No notifications.")
+            st.info("📭 No notifications")
 
     # ---------- APPEALS ----------
     elif page == "⚖️ Appeals":
-        st.title("⚖️ Appeals")
+        st.title("⚖️ Violation Appeals")
         with st.expander("📝 File Appeal"):
             violations = get_violations()
             pending = [v for v in violations if v.get('status') == 'pending']
@@ -325,50 +330,51 @@ else:
                         if reason:
                             data = {'violation_id': sel, 'user_id': user_id, 'reason': reason}
                             if add_appeal_to_db(data):
-                                st.success("✅ Submitted!")
+                                st.success("✅ Appeal submitted!")
                                 st.rerun()
             else:
-                st.info("No pending violations.")
+                st.info("No pending violations to appeal.")
         appeals = get_appeals(user_id)
         if appeals:
             df = pd.DataFrame(appeals)
             st.dataframe(df[['submission_date','reason','status','decision']], use_container_width=True, hide_index=True)
         else:
-            st.info("No appeals.")
+            st.info("No appeals found.")
 
     # ---------- ADMIN ----------
     elif page == "👑 Admin":
         if user['role'].lower() != 'admin':
-            st.error("⚠️ Admin only!")
+            st.error("⚠️ Admin access required.")
         else:
             st.title("👑 Admin Panel")
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Users", "0")
-            c2.metric("Vehicles", len(get_vehicles()))
-            c3.metric("Violations", len(get_violations()))
+            c1.metric("👤 Users", "0")
+            c2.metric("🚗 Vehicles", len(get_vehicles()))
+            c3.metric("⚠️ Violations", len(get_violations()))
             total = sum(p.get('amount',0) for p in get_payments() if p.get('status')=='completed')
-            c4.metric("Revenue", f"${total:,.2f}")
+            c4.metric("💰 Revenue", f"${total:,.2f}")
 
     # ---------- REPORTS ----------
     elif page == "📈 Reports":
         st.title("📈 Reports")
         c1, c2, c3 = st.columns(3)
-        c1.metric("Vehicles", len(get_vehicles()))
-        c2.metric("Violations", len(get_violations()))
+        c1.metric("🚗 Total Vehicles", len(get_vehicles()))
+        c2.metric("⚠️ Total Violations", len(get_violations()))
         total = sum(p.get('amount',0) for p in get_payments() if p.get('status')=='completed')
-        c3.metric("Revenue", f"${total:,.2f}")
+        c3.metric("💰 Total Revenue", f"${total:,.2f}")
 
     # ---------- ANALYTICS ----------
     elif page == "📉 Analytics":
         st.title("📉 Analytics")
-        st.info("Charts and analytics will appear here.")
+        st.info("📊 Analytics dashboard with charts coming soon.")
         c1, c2 = st.columns(2)
-        c1.metric("Vehicles", len(get_vehicles()))
-        c2.metric("Violations", len(get_violations()))
+        c1.metric("🚗 Vehicles", len(get_vehicles()))
+        c2.metric("⚠️ Violations", len(get_violations()))
 
-    # ---------- MOCK BRTA ----------
+    # ---------- MOCK BRTA API ----------
     elif page == "🔌 Mock BRTA API":
         st.title("🔌 Mock BRTA API")
+        st.info("🔍 Simulate BRTA vehicle and license verification.")
         c1, c2 = st.columns(2)
         with c1:
             reg = st.text_input("Vehicle Number")
@@ -386,15 +392,15 @@ else:
         st.title("🤖 AI Demo")
         tab1, tab2 = st.tabs(["📸 Plate Detection", "💬 Chatbot"])
         with tab1:
-            st.warning("Upload image for plate detection.")
-            uploaded = st.file_uploader("Image", type=['jpg','png'])
+            st.warning("Upload an image for license plate detection.")
+            uploaded = st.file_uploader("Choose Image", type=['jpg','png'])
             if uploaded:
                 st.image(uploaded, width=200)
-                st.success("✅ Plate: BD-123-ABC")
+                st.success("✅ Plate detected: BD-123-ABC")
         with tab2:
             msg = st.text_input("Ask about traffic rules...")
             if msg:
-                st.info("🤖 Speeding fines range from $50 to $500.")
+                st.info("🤖 Speeding fines range from $50 to $500 depending on the speed.")
 
     st.divider()
     st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

@@ -13,16 +13,11 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- HIDE STREAMLIT'S AUTOMATIC SIDEBAR NAVIGATION ----
+# ---- FORCE HIDE STREAMLIT'S AUTOMATIC NAVIGATION ----
 st.markdown("""
 <style>
     /* Hide Streamlit's default navigation completely */
     .stSidebarNav {
-        display: none !important;
-    }
-    
-    /* Hide the "app" header that Streamlit adds */
-    .stSidebar .st-emotion-cache-1v3fvcr {
         display: none !important;
     }
     
@@ -31,13 +26,23 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hide any page links */
+    /* Hide the "app" header that Streamlit adds */
+    .stSidebar .st-emotion-cache-1v3fvcr {
+        display: none !important;
+    }
+    
+    /* Hide all page links in sidebar */
     .stSidebar .stPageLink {
         display: none !important;
     }
     
-    /* Hide the entire navigation section */
-    section[data-testid="stSidebar"] .stMarkdown:has(a) {
+    /* Hide the entire scrollable navigation area */
+    .stSidebar .st-emotion-cache-1wrcr25 {
+        display: none !important;
+    }
+    
+    /* Hide any div containing page links */
+    .stSidebar .st-emotion-cache-1r6slb0 + div {
         display: none !important;
     }
     
@@ -46,8 +51,13 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hide the scrollable navigation area */
-    .stSidebar .st-emotion-cache-1wrcr25 {
+    /* Hide Streamlit's navigation UL/LI */
+    .stSidebar ul {
+        display: none !important;
+    }
+    
+    /* Hide navigation links */
+    .stSidebar a[data-testid="stPageLink"] {
         display: none !important;
     }
 </style>
@@ -60,7 +70,7 @@ with st.sidebar:
     st.markdown("---")
     
     if auth.is_logged_in():
-        # ---- CUSTOM NAVIGATION MENU (ONLY ONE!) ----
+        # ---- CUSTOM NAVIGATION MENU ----
         st.markdown("**app**")
         
         # Create clickable navigation links

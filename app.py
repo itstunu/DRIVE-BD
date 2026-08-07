@@ -13,45 +13,51 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- HIDE ONLY "VIEW LESS" AND SIDEBAR TITLE ----
+# ---- FORCE HIDE STREAMLIT'S AUTOMATIC NAVIGATION ----
 st.markdown("""
 <style>
-    /* Hide "View less" button */
-    .stSidebar button[kind="secondary"] {
-        display: none !important;
-    }
-    
-    /* Hide sidebar title (DriveBD) */
-    .stSidebar > div:first-child > div:first-child {
-        display: none !important;
-    }
-    
-    /* Hide Streamlit's default navigation */
+    /* Hide Streamlit's default navigation completely */
     .stSidebarNav {
         display: none !important;
     }
+    
+    /* Hide the navigation container */
     .stSidebar .st-emotion-cache-1r6slb0 {
         display: none !important;
     }
+    
+    /* Hide the "app" header that Streamlit adds */
     .stSidebar .st-emotion-cache-1v3fvcr {
         display: none !important;
     }
+    
+    /* Hide all page links in sidebar */
     .stSidebar .stPageLink {
         display: none !important;
     }
+    
+    /* Hide the entire scrollable navigation area */
     .stSidebar .st-emotion-cache-1wrcr25 {
         display: none !important;
     }
+    
+    /* Hide any div containing page links */
+    .stSidebar .st-emotion-cache-1r6slb0 + div {
+        display: none !important;
+    }
+    
+    /* Hide the "View less" and similar elements */
     .stSidebar .st-emotion-cache-1v3fvcr + div {
         display: none !important;
     }
+    
+    /* Hide Streamlit's navigation UL/LI */
     .stSidebar ul {
         display: none !important;
     }
+    
+    /* Hide navigation links */
     .stSidebar a[data-testid="stPageLink"] {
-        display: none !important;
-    }
-    .stSidebar .st-emotion-cache-16idsys {
         display: none !important;
     }
 </style>
@@ -59,34 +65,42 @@ st.markdown("""
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    # NO TITLE - just the menu
-    st.markdown("**app**")
-    
-    pages = {
-        "📊 Dashboard": "1_Dashboard",
-        "🚗 Vehicles": "2_Vehicles",
-        "⚠️ Violations": "3_Violations",
-        "💰 Payments": "4_Payments",
-        "📄 Documents": "5_Documents",
-        "🔧 Service History": "6_Service_History",
-        "🔔 Notifications": "7_Notifications",
-        "⚖️ Appeals": "8_Appeals",
-        "👑 Admin": "9_Admin",
-        "📈 Reports": "10_Reports",
-        "📉 Analytics": "11_Analytics",
-        "🔌 Mock BRTA API": "12_Mock_BRTA_API",
-        "🤖 AI Demo": "13_AI_Demo"
-    }
-    
-    for label, page in pages.items():
-        if st.button(label, key=page, use_container_width=True):
-            st.switch_page(f"pages/{page}.py")
-    
+    st.markdown("### 🚗 DriveBD")
+    st.markdown("Smart Driver & Vehicle Portal")
     st.markdown("---")
     
-    if st.button("🚪 Logout", use_container_width=True):
-        auth.logout()
-        st.rerun()
+    if auth.is_logged_in():
+        # ---- CUSTOM NAVIGATION MENU ----
+        st.markdown("**app**")
+        
+        # Create clickable navigation links
+        pages = {
+            "📊 Dashboard": "1_Dashboard",
+            "🚗 Vehicles": "2_Vehicles",
+            "⚠️ Violations": "3_Violations",
+            "💰 Payments": "4_Payments",
+            "📄 Documents": "5_Documents",
+            "🔧 Service History": "6_Service_History",
+            "🔔 Notifications": "7_Notifications",
+            "⚖️ Appeals": "8_Appeals",
+            "👑 Admin": "9_Admin",
+            "📈 Reports": "10_Reports",
+            "📉 Analytics": "11_Analytics",
+            "🔌 Mock BRTA API": "12_Mock_BRTA_API",
+            "🤖 AI Demo": "13_AI_Demo"
+        }
+        
+        for label, page in pages.items():
+            if st.button(label, key=page, use_container_width=True):
+                st.switch_page(f"pages/{page}.py")
+        
+        st.markdown("---")
+        
+        if st.button("🚪 Logout", use_container_width=True):
+            auth.logout()
+            st.rerun()
+    else:
+        st.info("👋 Please log in")
 
 # ---- MAIN APP ----
 if auth.is_logged_in():

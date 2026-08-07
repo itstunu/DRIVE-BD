@@ -13,19 +13,6 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- HIDE STREAMLIT'S DEFAULT NAV ----
-st.markdown("""
-<style>
-    .stSidebarNav { display: none !important; }
-    .stSidebar .st-emotion-cache-1r6slb0 { display: none !important; }
-    .stSidebar .st-emotion-cache-1v3fvcr { display: none !important; }
-    .stSidebar .stPageLink { display: none !important; }
-    .stSidebar ul { display: none !important; }
-    .stSidebar a[data-testid="stPageLink"] { display: none !important; }
-    section[data-testid="stSidebar"] .stMarkdown:has(a) { display: none !important; }
-</style>
-""", unsafe_allow_html=True)
-
 # ---- SIDEBAR ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
@@ -40,10 +27,11 @@ with st.sidebar:
         
         st.markdown("**app**")
         
-        # ---- PAGES ----
+        # Store current page in session state
         if "page" not in st.session_state:
             st.session_state.page = "Dashboard"
         
+        # Navigation buttons
         pages = [
             "📊 Dashboard",
             "🚗 Vehicles",
@@ -61,9 +49,13 @@ with st.sidebar:
         ]
         
         for p in pages:
-            if st.button(p, key=p, use_container_width=True):
-                st.session_state.page = p
-                st.rerun()
+            # Highlight active page
+            if st.session_state.page == p:
+                st.button(f"✅ {p}", key=p, use_container_width=True)
+            else:
+                if st.button(p, key=p, use_container_width=True):
+                    st.session_state.page = p
+                    st.rerun()
         
         st.markdown("---")
         
@@ -74,7 +66,7 @@ with st.sidebar:
     else:
         st.info("👋 Please log in")
 
-# ---- PAGE CONTENT ----
+# ---- MAIN CONTENT ----
 if not auth.is_logged_in():
     # ---- LOGIN PAGE ----
     left, right = st.columns([1.1, 1])
@@ -131,6 +123,7 @@ else:
     if page == "📊 Dashboard":
         st.title("📊 Dashboard")
         st.write(f"Welcome back, **{user['name']}**!")
+        
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("🚗 Vehicles", "0")
@@ -138,41 +131,44 @@ else:
             st.metric("⚠️ Violations", "0")
         with col3:
             st.metric("💰 Payments", "$0")
+        
+        st.divider()
+        st.info("Use the sidebar to navigate to different modules.")
     
     elif page == "🚗 Vehicles":
         st.title("🚗 Vehicles")
         st.write("Manage your vehicles here.")
-        st.info("Vehicle management coming soon!")
+        st.info("Vehicle management feature coming soon!")
     
     elif page == "⚠️ Violations":
         st.title("⚠️ Violations")
         st.write("View and manage traffic violations.")
-        st.info("Violation management coming soon!")
+        st.info("Violation management feature coming soon!")
     
     elif page == "💰 Payments":
         st.title("💰 Payments")
         st.write("Make payments for violations.")
-        st.info("Payment processing coming soon!")
+        st.info("Payment processing feature coming soon!")
     
     elif page == "📄 Documents":
         st.title("📄 Documents")
         st.write("Upload and manage your documents.")
-        st.info("Document management coming soon!")
+        st.info("Document management feature coming soon!")
     
     elif page == "🔧 Service History":
         st.title("🔧 Service History")
         st.write("Track your vehicle service history.")
-        st.info("Service history coming soon!")
+        st.info("Service history feature coming soon!")
     
     elif page == "🔔 Notifications":
         st.title("🔔 Notifications")
         st.write("View your notifications.")
-        st.info("Notifications coming soon!")
+        st.info("Notifications feature coming soon!")
     
     elif page == "⚖️ Appeals":
         st.title("⚖️ Appeals")
         st.write("File appeals for violations.")
-        st.info("Appeals management coming soon!")
+        st.info("Appeals management feature coming soon!")
     
     elif page == "👑 Admin":
         st.title("👑 Admin Panel")
@@ -185,12 +181,12 @@ else:
     elif page == "📈 Reports":
         st.title("📈 Reports")
         st.write("Generate and view reports.")
-        st.info("Reports coming soon!")
+        st.info("Reports feature coming soon!")
     
     elif page == "📉 Analytics":
         st.title("📉 Analytics")
         st.write("View analytics and insights.")
-        st.info("Analytics coming soon!")
+        st.info("Analytics feature coming soon!")
     
     elif page == "🔌 Mock BRTA API":
         st.title("🔌 Mock BRTA API")

@@ -1,158 +1,97 @@
-"""
-DriveBD - Database Layer with Supabase Integration
-"""
-import os
-from supabase import create_client, Client
-from datetime import datetime
 import streamlit as st
+from db import init_db
+import auth
 
-# Initialize Supabase client
-SUPABASE_URL = st.secrets.get("SUPABASE_URL", "")
-SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
+st.set_page_config(page_title="DriveBD - Smart Driver & Vehicle Portal", page_icon="🚗", layout="wide")
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    st.error("⚠️ Supabase credentials not found! Please add SUPABASE_URL and SUPABASE_KEY to secrets.")
-    st.stop()
+init_db()
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# --- AUTO-SEED BLOCK FOR STREAMLIT CLOUD ---
+import os
+from db import DB_PATH
 
-def init_db():
-    """Initialize database - creates tables if they don't exist"""
-    # Tables should be created manually in Supabase SQL editor
-    # This function just checks if connection works
-    try:
-        supabase.table('users').select('count').limit(1).execute()
-        print("✅ Supabase connection successful")
-    except Exception as e:
-        print(f"⚠️ Error connecting to Supabase: {e}")
+# If the database file doesn't exist, generate all mock data and create it.
+if not os.path.exists(DB_PATH):
+    print("⚠️ Database not found. Generating fresh mock data...")
+    from seed import generate
+    generate()
+    print("✅ Database seeding complete.")
+# --------------------------------------------
+# ---- Simple CSS theme ----
+st.markdown("""
+<style>
+.main-header {font-size: 2.4rem; font-weight: 700; color: #0B5FFF; margin-bottom:0;}
+.sub-header {color: #555; font-size:1.05rem; margin-top:0;}
+div.stButton > button {background-color: #0B5FFF; color: white; border-radius: 8px; border:none;}
+div.stButton > button:hover {background-color: #0847C4; color: white;}
+.metric-card {background:#F0F5FF; padding:16px; border-radius:10px; border:1px solid #D6E4FF;}
+</style>
+""", unsafe_allow_html=True)
 
-def get_user_by_email(email):
-    """Get user by email"""
-    try:
-        result = supabase.table('users').select('*').eq('email', email.lower().strip()).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error fetching user: {e}")
-        return None
+if auth.is_logged_in():
+    user = auth.current_user()
+    st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal</p>', unsafe_allow_html=True)
+    st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
+    st.info("Use the sidebar to navigate to Dashboard, Vehicles, Violations, Payments and other modules.")
 
-def create_user(user_data):
-    """Create a new user"""
-    try:
-        user_data['email'] = user_data['email'].lower().strip()
-        user_data['created_at'] = datetime.now().isoformat()
-        user_data['updated_at'] = datetime.now().isoformat()
-        result = supabase.table('users').insert(user_data).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error creating user: {e}")
-        return None
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown('<div class="metric-card"><b>Role</b><br>' + user["role"].title() + '</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="metric-card"><b>Email</b><br>' + user["email"] + '</div>', unsafe_allow_html=True)
+    with col3:
+        if st.button("Log out"):
+            auth.logout()
+            st.rerun()
+else:
+    left, right = st.columns([1.1, 1])
+    with left:
+        st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
+        st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal for Bangladesh</p>', unsafe_allow_html=True)
+        st.write("""
+        DriveBD is a unified portal for vehicle owners and drivers to manage registrations,
+        traffic violations, fines, documents, service history and more — with a mock BRTA
+        integration and a demo AI violation detector.
+        """)
+        st.markdown("""
+        **Demo accounts (pre-seeded):**
+        - 👤 Owner demo: `demo@drivebd.gov.bd` / `Demo@123`
+        - 🛡️ Admin demo: `admin@drivebd.gov.bd` / `Admin@123`
+        """)
 
-def get_vehicles(user_id=None, registration_number=None):
-    """Get vehicles (optionally filtered by user or registration number)"""
-    try:
-        query = supabase.table('vehicles').select('*')
-        if user_id:
-            query = query.eq('user_id', user_id)
-        if registration_number:
-            query = query.eq('registration_number', registration_number.upper())
-        result = query.execute()
-        return result.data
-    except Exception as e:
-        print(f"Error fetching vehicles: {e}")
-        return []
+    with right:
+        tab_login, tab_register = st.tabs(["Log In", "Create Account"])
 
-def add_vehicle(vehicle_data):
-    """Add a new vehicle"""
-    try:
-        vehicle_data['created_at'] = datetime.now().isoformat()
-        vehicle_data['updated_at'] = datetime.now().isoformat()
-        result = supabase.table('vehicles').insert(vehicle_data).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error adding vehicle: {e}")
-        return None
+        with tab_login:
+            with st.form("login_form"):
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Log In")
+                if submitted:
+                    if auth.login(email, password):
+                        st.rerun()
+                    else:
+                        st.error("Invalid email or password.")
 
-def update_vehicle(registration_number, vehicle_data):
-    """Update a vehicle"""
-    try:
-        vehicle_data['updated_at'] = datetime.now().isoformat()
-        result = supabase.table('vehicles').update(vehicle_data).eq('registration_number', registration_number.upper()).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error updating vehicle: {e}")
-        return None
+        with tab_register:
+            with st.form("register_form"):
+                name = st.text_input("Full name")
+                email_r = st.text_input("Email", key="reg_email")
+                phone = st.text_input("Phone number")
+                nid = st.text_input("NID number")
+                role = st.selectbox("Account type", ["driver", "owner"])
+                password_r = st.text_input("Password", type="password", key="reg_pw")
+                submitted_r = st.form_submit_button("Create Account")
+                if submitted_r:
+                    if not (name and email_r and password_r):
+                        st.error("Name, email and password are required.")
+                    else:
+                        ok, msg = auth.register_user(name, email_r, password_r, role, nid=nid, phone=phone)
+                        if ok:
+                            st.success(msg)
+                        else:
+                            st.error(msg)
 
-def delete_vehicle(registration_number):
-    """Delete a vehicle"""
-    try:
-        result = supabase.table('vehicles').delete().eq('registration_number', registration_number.upper()).execute()
-        return len(result.data) > 0
-    except Exception as e:
-        print(f"Error deleting vehicle: {e}")
-        return False
-
-def get_violations(vehicle_number=None, user_id=None, status=None):
-    """Get violations with optional filters"""
-    try:
-        query = supabase.table('violations').select('*')
-        if vehicle_number:
-            query = query.eq('vehicle_number', vehicle_number.upper())
-        if user_id:
-            query = query.eq('user_id', user_id)
-        if status:
-            query = query.eq('status', status)
-        result = query.execute()
-        return result.data
-    except Exception as e:
-        print(f"Error fetching violations: {e}")
-        return []
-
-def add_violation(violation_data):
-    """Add a new violation"""
-    try:
-        violation_data['created_at'] = datetime.now().isoformat()
-        violation_data['updated_at'] = datetime.now().isoformat()
-        result = supabase.table('violations').insert(violation_data).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error adding violation: {e}")
-        return None
-
-def update_violation(violation_id, violation_data):
-    """Update a violation"""
-    try:
-        violation_data['updated_at'] = datetime.now().isoformat()
-        result = supabase.table('violations').update(violation_data).eq('id', violation_id).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error updating violation: {e}")
-        return None
-
-def get_payments(violation_id=None, user_id=None, status=None):
-    """Get payments with optional filters"""
-    try:
-        query = supabase.table('payments').select('*')
-        if violation_id:
-            query = query.eq('violation_id', violation_id)
-        if user_id:
-            query = query.eq('user_id', user_id)
-        if status:
-            query = query.eq('status', status)
-        result = query.execute()
-        return result.data
-    except Exception as e:
-        print(f"Error fetching payments: {e}")
-        return []
-
-def add_payment(payment_data):
-    """Add a new payment"""
-    try:
-        payment_data['payment_date'] = datetime.now().isoformat()
-        payment_data['created_at'] = datetime.now().isoformat()
-        result = supabase.table('payments').insert(payment_data).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        print(f"Error adding payment: {e}")
-        return None
-
-# Add more functions for: documents, appeals, notifications, service_history
+st.divider()
+st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

@@ -2,6 +2,7 @@ import streamlit as st
 from db import init_db
 import auth
 
+# ---- MUST BE FIRST STREAMLIT COMMAND ----
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
@@ -9,9 +10,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ---- Initialize Database ----
 init_db()
 
-# ---- HIDE STREAMLIT DEFAULT NAV + VIEW LESS ----
+# ---- HIDE STREAMLIT DEFAULT NAV + VIEW LESS + TITLE ----
 st.markdown("""
 <style>
     .stSidebarNav { display: none !important; }
@@ -29,17 +31,12 @@ st.markdown("""
     .stSidebar > div:first-child > div:first-child {
         display: none !important;
     }
-    
-    /* Keep only the app menu and make it clean */
-    .stSidebar .stMarkdown {
-        font-size: 14px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    # Only app menu
+    # Only app menu - NO TITLE
     st.markdown("**app**")
     
     pages = {
@@ -63,6 +60,7 @@ with st.sidebar:
             st.switch_page(f"pages/{page}.py")
     
     st.markdown("---")
+    
     if st.button("🚪 Logout", use_container_width=True):
         auth.logout()
         st.rerun()

@@ -13,56 +13,6 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- FORCE HIDE STREAMLIT'S AUTOMATIC NAVIGATION ----
-st.markdown("""
-<style>
-    /* Hide Streamlit's default navigation completely */
-    .stSidebarNav {
-        display: none !important;
-    }
-    
-    /* Hide the navigation container */
-    .stSidebar .st-emotion-cache-1r6slb0 {
-        display: none !important;
-    }
-    
-    /* Hide the "app" header that Streamlit adds */
-    .stSidebar .st-emotion-cache-1v3fvcr {
-        display: none !important;
-    }
-    
-    /* Hide all page links in sidebar */
-    .stSidebar .stPageLink {
-        display: none !important;
-    }
-    
-    /* Hide the entire scrollable navigation area */
-    .stSidebar .st-emotion-cache-1wrcr25 {
-        display: none !important;
-    }
-    
-    /* Hide any div containing page links */
-    .stSidebar .st-emotion-cache-1r6slb0 + div {
-        display: none !important;
-    }
-    
-    /* Hide the "View less" and similar elements */
-    .stSidebar .st-emotion-cache-1v3fvcr + div {
-        display: none !important;
-    }
-    
-    /* Hide Streamlit's navigation UL/LI */
-    .stSidebar ul {
-        display: none !important;
-    }
-    
-    /* Hide navigation links */
-    .stSidebar a[data-testid="stPageLink"] {
-        display: none !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # ---- SIDEBAR ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
@@ -70,76 +20,54 @@ with st.sidebar:
     st.markdown("---")
     
     if auth.is_logged_in():
-        # ---- CUSTOM NAVIGATION MENU ----
+        user = auth.current_user()
+        st.markdown(f"👤 **{user['name']}**")
+        st.markdown(f"*{user['role'].title()}*")
+        st.markdown("---")
+        
+        # ---- Create navigation menu ----
         st.markdown("**app**")
         
-        # Create clickable navigation links
+        # Define pages with their display names and icons
         pages = {
-            "📊 Dashboard": "1_Dashboard",
-            "🚗 Vehicles": "2_Vehicles",
-            "⚠️ Violations": "3_Violations",
-            "💰 Payments": "4_Payments",
-            "📄 Documents": "5_Documents",
-            "🔧 Service History": "6_Service_History",
-            "🔔 Notifications": "7_Notifications",
-            "⚖️ Appeals": "8_Appeals",
-            "👑 Admin": "9_Admin",
-            "📈 Reports": "10_Reports",
-            "📉 Analytics": "11_Analytics",
-            "🔌 Mock BRTA API": "12_Mock_BRTA_API",
-            "🤖 AI Demo": "13_AI_Demo"
+            "📊 Dashboard": "dashboard",
+            "🚗 Vehicles": "vehicles",
+            "⚠️ Violations": "violations",
+            "💰 Payments": "payments",
+            "📄 Documents": "documents",
+            "🔧 Service History": "service_history",
+            "🔔 Notifications": "notifications",
+            "⚖️ Appeals": "appeals",
+            "👑 Admin": "admin",
+            "📈 Reports": "reports",
+            "📉 Analytics": "analytics",
+            "🔌 Mock BRTA API": "mock_brta_api",
+            "🤖 AI Demo": "ai_demo"
         }
         
-        for label, page in pages.items():
-            if st.button(label, key=page, use_container_width=True):
-                st.switch_page(f"pages/{page}.py")
+        # Store selected page in session state
+        if "selected_page" not in st.session_state:
+            st.session_state.selected_page = "dashboard"
+        
+        for label, page_id in pages.items():
+            # Highlight active page
+            button_style = "primary" if st.session_state.selected_page == page_id else "secondary"
+            if st.button(label, key=page_id, use_container_width=True, type=button_style):
+                st.session_state.selected_page = page_id
+                st.rerun()
         
         st.markdown("---")
         
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
+            st.session_state.selected_page = "dashboard"
             st.rerun()
     else:
         st.info("👋 Please log in")
 
-# ---- MAIN APP ----
-if auth.is_logged_in():
-    user = auth.current_user()
-    
-    st.title("🚗 DriveBD")
-    st.subheader("Smart Driver & Vehicle Owner Portal")
-    st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown(f"""
-        <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
-            <p style="font-size:12px; color:#888; margin:0;">📋 ROLE</p>
-            <p style="font-size:18px; font-weight:bold; margin:5px 0 0 0;">{user['role'].title()}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
-            <p style="font-size:12px; color:#888; margin:0;">📧 EMAIL</p>
-            <p style="font-size:14px; font-weight:bold; margin:5px 0 0 0; word-break:break-all;">{user['email']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
-            <p style="font-size:12px; color:#888; margin:0;">✅ STATUS</p>
-            <p style="font-size:18px; font-weight:bold; margin:5px 0 0 0; color:#00C853;">Active</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.divider()
-    st.info("Use the sidebar to navigate to Dashboard, Vehicles, Violations, Payments and other modules.")
-
-else:
+# ---- PAGE CONTENT ----
+if not auth.is_logged_in():
+    # Show login page
     left, right = st.columns([1.1, 1])
     with left:
         st.title("🚗 DriveBD")
@@ -186,6 +114,85 @@ else:
                             st.success(msg)
                         else:
                             st.error(msg)
+else:
+    # ---- SHOW SELECTED PAGE ----
+    user = auth.current_user()
+    selected = st.session_state.selected_page
+    
+    if selected == "dashboard":
+        st.title("📊 Dashboard")
+        st.write(f"Welcome back, **{user['name']}**!")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🚗 Vehicles", "0")
+        with col2:
+            st.metric("⚠️ Violations", "0")
+        with col3:
+            st.metric("💰 Payments", "$0")
+    
+    elif selected == "vehicles":
+        st.title("🚗 Vehicles")
+        st.write("Manage your vehicles here.")
+        st.info("Vehicle management coming soon!")
+    
+    elif selected == "violations":
+        st.title("⚠️ Violations")
+        st.write("View and manage traffic violations.")
+        st.info("Violation management coming soon!")
+    
+    elif selected == "payments":
+        st.title("💰 Payments")
+        st.write("Make payments for violations.")
+        st.info("Payment processing coming soon!")
+    
+    elif selected == "documents":
+        st.title("📄 Documents")
+        st.write("Upload and manage your documents.")
+        st.info("Document management coming soon!")
+    
+    elif selected == "service_history":
+        st.title("🔧 Service History")
+        st.write("Track your vehicle service history.")
+        st.info("Service history coming soon!")
+    
+    elif selected == "notifications":
+        st.title("🔔 Notifications")
+        st.write("View your notifications.")
+        st.info("Notifications coming soon!")
+    
+    elif selected == "appeals":
+        st.title("⚖️ Appeals")
+        st.write("File appeals for violations.")
+        st.info("Appeals management coming soon!")
+    
+    elif selected == "admin":
+        st.title("👑 Admin Panel")
+        st.write("Administrative controls.")
+        if user['role'].lower() != 'admin':
+            st.error("⚠️ You need Admin privileges to access this page.")
+        else:
+            st.info("Admin panel coming soon!")
+    
+    elif selected == "reports":
+        st.title("📈 Reports")
+        st.write("Generate and view reports.")
+        st.info("Reports coming soon!")
+    
+    elif selected == "analytics":
+        st.title("📉 Analytics")
+        st.write("View analytics and insights.")
+        st.info("Analytics coming soon!")
+    
+    elif selected == "mock_brta_api":
+        st.title("🔌 Mock BRTA API")
+        st.write("Simulate BRTA API integration.")
+        st.info("BRTA API simulation coming soon!")
+    
+    elif selected == "ai_demo":
+        st.title("🤖 AI Demo")
+        st.write("AI-powered features demo.")
+        st.info("AI features coming soon!")
 
 st.divider()
 st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

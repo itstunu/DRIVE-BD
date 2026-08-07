@@ -1,6 +1,6 @@
 import streamlit as st
-from utils.db import init_db
-from utils import auth
+from db import init_db
+import auth
 
 st.set_page_config(page_title="DriveBD - Smart Driver & Vehicle Portal", page_icon="🚗", layout="wide")
 

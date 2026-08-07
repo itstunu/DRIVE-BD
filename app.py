@@ -38,47 +38,17 @@ with st.sidebar:
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
             st.rerun()
-        
-        st.markdown("---")
-        st.markdown("### 📋 Navigation")
-        
-        # Use markdown links (works in all Streamlit versions)
-        st.markdown("🏠 [Home](/)")
-        st.markdown("📊 [Dashboard](/Dashboard)")
-        st.markdown("🚗 [Vehicles](/Vehicles)")
-        st.markdown("🚨 [Violations](/Violations)")
-        st.markdown("💳 [Payments](/Payments)")
-        st.markdown("📄 [Documents](/Documents)")
-        st.markdown("🔧 [Service History](/Service_History)")
-        st.markdown("🔔 [Notifications](/Notifications)")
-        st.markdown("⚖️ [Appeals](/Appeals)")
-        
-        if user['role'].lower() in ['admin', 'administrator']:
-            st.markdown("---")
-            st.markdown("### 🔐 Admin")
-            st.markdown("🛡️ [Admin](/Admin)")
-            st.markdown("📈 [Reports](/Reports)")
-            st.markdown("📊 [Analytics](/Analytics)")
-            st.markdown("🔌 [Mock BRTA API](/Mock_BRTA_API)")
-            st.markdown("🧠 [AI Demo](/AI_Demo)")
     else:
-        st.info("👈 Please log in to access the dashboard")
+        st.info("👈 Please log in")
 
 # ---- MAIN APP CONTENT ----
 if auth.is_logged_in():
     user = auth.current_user()
-    st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal</p>', unsafe_allow_html=True)
-    st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
-    st.info("👈 Use the sidebar to navigate to different modules.")
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f'<div class="metric-card"><b>Role</b><br>{user["role"].title()}</div>', unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<div class="metric-card"><b>Email</b><br>{user["email"]}</div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown(f'<div class="metric-card"><b>User ID</b><br>{user["user_id"][:8]}...</div>', unsafe_allow_html=True)
+    
+    # ---- REDIRECT TO DASHBOARD AFTER LOGIN ----
+    # This ensures the sidebar shows the page links
+    st.switch_page("pages/1_Dashboard.py")
+    
 else:
     left, right = st.columns([1.1, 1])
     with left:

@@ -2,15 +2,15 @@ import streamlit as st
 from db import init_db
 import auth
 
-# Initialize database
-init_db()
-
-# ---- Page Config ----
+# ---- MUST BE FIRST STREAMLIT COMMAND ----
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
     layout="wide"
 )
+
+# ---- Initialize Database ----
+init_db()
 
 # ---- Simple CSS theme ----
 st.markdown("""
@@ -23,7 +23,7 @@ div.stButton > button:hover {background-color: #0847C4; color: white;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---- Main App ----
+# ---- MAIN APP LOGIC ----
 if auth.is_logged_in():
     user = auth.current_user()
     st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
@@ -33,9 +33,9 @@ if auth.is_logged_in():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown('<div class="metric-card"><b>Role</b><br>' + user["role"].title() + '</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><b>Role</b><br>{user["role"].title()}</div>', unsafe_allow_html=True)
     with col2:
-        st.markdown('<div class="metric-card"><b>Email</b><br>' + user["email"] + '</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><b>Email</b><br>{user["email"]}</div>', unsafe_allow_html=True)
     with col3:
         if st.button("Log out"):
             auth.logout()

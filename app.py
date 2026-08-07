@@ -6,8 +6,7 @@ import auth
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # ---- Initialize Database ----
@@ -24,48 +23,24 @@ div.stButton > button:hover {background-color: #0847C4; color: white;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---- Sidebar ----
-def show_sidebar():
-    with st.sidebar:
-        st.markdown("### 🚗 DriveBD")
+# ---- Sidebar (Only user info and logout) ----
+with st.sidebar:
+    st.markdown("### 🚗 DriveBD")
+    st.markdown("---")
+    
+    if auth.is_logged_in():
+        user = auth.current_user()
+        st.markdown(f"👤 **{user['name']}**")
+        st.markdown(f"📧 {user['email']}")
+        st.markdown(f"🔑 Role: **{user['role'].title()}**")
         st.markdown("---")
         
-        if auth.is_logged_in():
-            user = auth.current_user()
-            st.markdown(f"👤 **{user['name']}**")
-            st.markdown(f"📧 {user['email']}")
-            st.markdown(f"🔑 Role: **{user['role'].title()}**")
-            st.markdown("---")
-            
-            st.markdown("### 📋 Navigation")
-            st.markdown("[🏠 Home](/)")
-            st.markdown("[📊 Dashboard](/Dashboard)")
-            st.markdown("[🚗 Vehicles](/Vehicles)")
-            st.markdown("[🚨 Violations](/Violations)")
-            st.markdown("[💳 Payments](/Payments)")
-            st.markdown("[📄 Documents](/Documents)")
-            st.markdown("[🔧 Service History](/Service_History)")
-            st.markdown("[🔔 Notifications](/Notifications)")
-            st.markdown("[⚖️ Appeals](/Appeals)")
-            
-            if user['role'].lower() == 'admin':
-                st.markdown("---")
-                st.markdown("### 🔐 Admin")
-                st.markdown("[🛡️ Admin Panel](/Admin)")
-                st.markdown("[📈 Reports](/Reports)")
-                st.markdown("[📊 Analytics](/Analytics)")
-                st.markdown("[🤖 Mock BRTA API](/Mock_BRTA_API)")
-                st.markdown("[🧠 AI Demo](/AI_Demo)")
-            
-            st.markdown("---")
-            if st.button("🚪 Logout", use_container_width=True):
-                auth.logout()
-                st.rerun()
-        else:
-            st.info("👈 Please log in")
-
-# ---- Show Sidebar ----
-show_sidebar()
+        # Logout button
+        if st.button("🚪 Logout", use_container_width=True):
+            auth.logout()
+            st.rerun()
+    else:
+        st.info("👈 Please log in")
 
 # ---- MAIN APP LOGIC ----
 if auth.is_logged_in():

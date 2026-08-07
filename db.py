@@ -11,10 +11,9 @@ import uuid
 try:
     from supabase import create_client, Client
     SUPABASE_AVAILABLE = True
-    print("✅ Supabase imported successfully")
-except ImportError as e:
+except ImportError:
     SUPABASE_AVAILABLE = False
-    print(f"⚠️ Supabase not installed: {e}. Using local SQLite.")
+    print("⚠️ Supabase not installed. Using local SQLite.")
 
 # Database path for local fallback
 DB_PATH = "data/drivebd.db"
@@ -28,8 +27,16 @@ def get_supabase():
         return None
     
     try:
-        supabase_url = st.secrets.get("SUPABASE_URL", "")
-        supabase_key = st.secrets.get("SUPABASE_KEY", "")
+        # Try to get secrets - with fallback
+        supabase_url = None
+        supabase_key = None
+        
+        try:
+            supabase_url = st.secrets.get("SUPABASE_URL", "")
+            supabase_key = st.secrets.get("SUPABASE_KEY", "")
+        except Exception:
+            # Secrets not available
+            pass
         
         if supabase_url and supabase_key:
             print("✅ Supabase configured. Using cloud database.")
@@ -41,19 +48,20 @@ def get_supabase():
         print(f"⚠️ Supabase connection error: {e}. Using local SQLite.")
         return None
 
-# Check if using Supabase
-USE_SUPABASE = get_supabase() is not None
+# ========== LAZY SUPABASE CHECK ==========
 
-if USE_SUPABASE:
-    print("✅ Using Supabase for database")
-else:
-    print("ℹ️ Using local SQLite database")
+def is_supabase_available():
+    """Lazy check if Supabase is available"""
+    if not SUPABASE_AVAILABLE:
+        return False
+    supabase = get_supabase()
+    return supabase is not None
 
 # ========== DATABASE INITIALIZATION ==========
 
 def init_db():
     """Initialize the database (creates tables if needed)"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         print("✅ Using Supabase - tables should already exist")
         return True
     
@@ -64,7 +72,7 @@ def init_db():
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # Create all tables (same as before)
+        # Users table
         c.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -80,6 +88,7 @@ def init_db():
             )
         ''')
         
+        # Vehicles table
         c.execute('''
             CREATE TABLE IF NOT EXISTS vehicles (
                 id TEXT PRIMARY KEY,
@@ -97,6 +106,7 @@ def init_db():
             )
         ''')
         
+        # Violations table
         c.execute('''
             CREATE TABLE IF NOT EXISTS violations (
                 id TEXT PRIMARY KEY,
@@ -111,6 +121,7 @@ def init_db():
             )
         ''')
         
+        # Payments table
         c.execute('''
             CREATE TABLE IF NOT EXISTS payments (
                 id TEXT PRIMARY KEY,
@@ -126,6 +137,7 @@ def init_db():
             )
         ''')
         
+        # Documents table
         c.execute('''
             CREATE TABLE IF NOT EXISTS documents (
                 id TEXT PRIMARY KEY,
@@ -141,6 +153,7 @@ def init_db():
             )
         ''')
         
+        # Notifications table
         c.execute('''
             CREATE TABLE IF NOT EXISTS notifications (
                 id TEXT PRIMARY KEY,
@@ -154,6 +167,7 @@ def init_db():
             )
         ''')
         
+        # Appeals table
         c.execute('''
             CREATE TABLE IF NOT EXISTS appeals (
                 id TEXT PRIMARY KEY,
@@ -170,6 +184,7 @@ def init_db():
             )
         ''')
         
+        # Activity logs table
         c.execute('''
             CREATE TABLE IF NOT EXISTS activity_logs (
                 id TEXT PRIMARY KEY,
@@ -193,13 +208,12 @@ def init_db():
 
 def get_user_by_email(email):
     """Get user by email - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                result = supabase.table('users').select('*').eq('email', email).execute()
-                if result.data:
-                    return result.data[0]
+            result = supabase.table('users').select('*').eq('email', email).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase get_user error: {e}")
             # Fall through to local
@@ -230,15 +244,14 @@ def get_user_by_email(email):
 
 def create_user_in_db(user_data):
     """Create a new user - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                user_data['created_at'] = datetime.now().isoformat()
-                user_data['updated_at'] = datetime.now().isoformat()
-                result = supabase.table('users').insert(user_data).execute()
-                if result.data:
-                    return result.data[0]
+            user_data['created_at'] = datetime.now().isoformat()
+            user_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('users').insert(user_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase create_user error: {e}")
             # Fall through to local
@@ -277,19 +290,18 @@ def create_user_in_db(user_data):
 
 def log_activity_db(user_id, action, details=None):
     """Log user activity - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                activity_data = {
-                    'user_id': user_id,
-                    'action': action,
-                    'details': details,
-                    'timestamp': datetime.now().isoformat()
-                }
-                result = supabase.table('activity_logs').insert(activity_data).execute()
-                if result.data:
-                    return True
+            activity_data = {
+                'user_id': user_id,
+                'action': action,
+                'details': details,
+                'timestamp': datetime.now().isoformat()
+            }
+            result = supabase.table('activity_logs').insert(activity_data).execute()
+            if result.data:
+                return True
         except Exception as e:
             print(f"⚠️ Supabase log_activity error: {e}")
             # Fall through to local
@@ -318,16 +330,15 @@ def log_activity_db(user_id, action, details=None):
 
 def get_vehicles(user_id=None):
     """Get vehicles - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                query = supabase.table('vehicles').select('*')
-                if user_id:
-                    query = query.eq('user_id', user_id)
-                result = query.execute()
-                if result.data:
-                    return result.data
+            query = supabase.table('vehicles').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
         except Exception as e:
             print(f"⚠️ Supabase get_vehicles error: {e}")
             # Fall through to local
@@ -366,15 +377,14 @@ def get_vehicles(user_id=None):
 
 def add_vehicle_to_db(vehicle_data):
     """Add a vehicle - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                vehicle_data['created_at'] = datetime.now().isoformat()
-                vehicle_data['updated_at'] = datetime.now().isoformat()
-                result = supabase.table('vehicles').insert(vehicle_data).execute()
-                if result.data:
-                    return result.data[0]
+            vehicle_data['created_at'] = datetime.now().isoformat()
+            vehicle_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('vehicles').insert(vehicle_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase add_vehicle error: {e}")
             # Fall through to local
@@ -417,16 +427,15 @@ def add_vehicle_to_db(vehicle_data):
 
 def get_violations(vehicle_number=None):
     """Get violations - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                query = supabase.table('violations').select('*')
-                if vehicle_number:
-                    query = query.eq('vehicle_number', vehicle_number)
-                result = query.execute()
-                if result.data:
-                    return result.data
+            query = supabase.table('violations').select('*')
+            if vehicle_number:
+                query = query.eq('vehicle_number', vehicle_number)
+            result = query.execute()
+            if result.data:
+                return result.data
         except Exception as e:
             print(f"⚠️ Supabase get_violations error: {e}")
             # Fall through to local
@@ -462,15 +471,14 @@ def get_violations(vehicle_number=None):
 
 def add_violation_to_db(violation_data):
     """Add a violation - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                violation_data['created_at'] = datetime.now().isoformat()
-                violation_data['updated_at'] = datetime.now().isoformat()
-                result = supabase.table('violations').insert(violation_data).execute()
-                if result.data:
-                    return result.data[0]
+            violation_data['created_at'] = datetime.now().isoformat()
+            violation_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('violations').insert(violation_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase add_violation error: {e}")
             # Fall through to local
@@ -508,16 +516,15 @@ def add_violation_to_db(violation_data):
 
 def update_violation_status(violation_id, status):
     """Update violation status - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                result = supabase.table('violations').update({
-                    'status': status,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('id', violation_id).execute()
-                if result.data:
-                    return True
+            result = supabase.table('violations').update({
+                'status': status,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', violation_id).execute()
+            if result.data:
+                return True
         except Exception as e:
             print(f"⚠️ Supabase update_violation error: {e}")
             # Fall through to local
@@ -542,16 +549,15 @@ def update_violation_status(violation_id, status):
 
 def get_payments(user_id=None):
     """Get payments - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                query = supabase.table('payments').select('*')
-                if user_id:
-                    query = query.eq('user_id', user_id)
-                result = query.execute()
-                if result.data:
-                    return result.data
+            query = supabase.table('payments').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
         except Exception as e:
             print(f"⚠️ Supabase get_payments error: {e}")
             # Fall through to local
@@ -588,16 +594,15 @@ def get_payments(user_id=None):
 
 def add_payment_to_db(payment_data):
     """Add a payment - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                payment_data['payment_date'] = datetime.now().isoformat()
-                payment_data['created_at'] = datetime.now().isoformat()
-                payment_data['updated_at'] = datetime.now().isoformat()
-                result = supabase.table('payments').insert(payment_data).execute()
-                if result.data:
-                    return result.data[0]
+            payment_data['payment_date'] = datetime.now().isoformat()
+            payment_data['created_at'] = datetime.now().isoformat()
+            payment_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('payments').insert(payment_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase add_payment error: {e}")
             # Fall through to local
@@ -639,16 +644,15 @@ def add_payment_to_db(payment_data):
 
 def get_documents(user_id=None):
     """Get documents - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                query = supabase.table('documents').select('*')
-                if user_id:
-                    query = query.eq('user_id', user_id)
-                result = query.execute()
-                if result.data:
-                    return result.data
+            query = supabase.table('documents').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
         except Exception as e:
             print(f"⚠️ Supabase get_documents error: {e}")
             # Fall through to local
@@ -685,16 +689,15 @@ def get_documents(user_id=None):
 
 def add_document_to_db(document_data):
     """Add a document - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                document_data['upload_date'] = datetime.now().isoformat()
-                document_data['created_at'] = datetime.now().isoformat()
-                document_data['updated_at'] = datetime.now().isoformat()
-                result = supabase.table('documents').insert(document_data).execute()
-                if result.data:
-                    return result.data[0]
+            document_data['upload_date'] = datetime.now().isoformat()
+            document_data['created_at'] = datetime.now().isoformat()
+            document_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('documents').insert(document_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase add_document error: {e}")
             # Fall through to local
@@ -736,13 +739,12 @@ def add_document_to_db(document_data):
 
 def get_notifications(user_id):
     """Get notifications - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                result = supabase.table('notifications').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
-                if result.data:
-                    return result.data
+            result = supabase.table('notifications').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+            if result.data:
+                return result.data
         except Exception as e:
             print(f"⚠️ Supabase get_notifications error: {e}")
             # Fall through to local
@@ -774,15 +776,14 @@ def get_notifications(user_id):
 
 def add_notification_to_db(notification_data):
     """Add a notification - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                notification_data['created_at'] = datetime.now().isoformat()
-                notification_data['is_read'] = False
-                result = supabase.table('notifications').insert(notification_data).execute()
-                if result.data:
-                    return result.data[0]
+            notification_data['created_at'] = datetime.now().isoformat()
+            notification_data['is_read'] = False
+            result = supabase.table('notifications').insert(notification_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase add_notification error: {e}")
             # Fall through to local
@@ -818,16 +819,15 @@ def add_notification_to_db(notification_data):
 
 def mark_notification_read(notification_id):
     """Mark notification as read - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                result = supabase.table('notifications').update({
-                    'is_read': True,
-                    'read_at': datetime.now().isoformat()
-                }).eq('id', notification_id).execute()
-                if result.data:
-                    return True
+            result = supabase.table('notifications').update({
+                'is_read': True,
+                'read_at': datetime.now().isoformat()
+            }).eq('id', notification_id).execute()
+            if result.data:
+                return True
         except Exception as e:
             print(f"⚠️ Supabase mark_notification_read error: {e}")
             # Fall through to local
@@ -852,16 +852,15 @@ def mark_notification_read(notification_id):
 
 def get_appeals(user_id=None):
     """Get appeals - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                query = supabase.table('appeals').select('*')
-                if user_id:
-                    query = query.eq('user_id', user_id)
-                result = query.execute()
-                if result.data:
-                    return result.data
+            query = supabase.table('appeals').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
         except Exception as e:
             print(f"⚠️ Supabase get_appeals error: {e}")
             # Fall through to local
@@ -899,17 +898,16 @@ def get_appeals(user_id=None):
 
 def add_appeal_to_db(appeal_data):
     """Add an appeal - Supabase first, fallback to local"""
-    if USE_SUPABASE:
+    if is_supabase_available():
         try:
             supabase = get_supabase()
-            if supabase:
-                appeal_data['submission_date'] = datetime.now().isoformat()
-                appeal_data['status'] = 'pending'
-                appeal_data['created_at'] = datetime.now().isoformat()
-                appeal_data['updated_at'] = datetime.now().isoformat()
-                result = supabase.table('appeals').insert(appeal_data).execute()
-                if result.data:
-                    return result.data[0]
+            appeal_data['submission_date'] = datetime.now().isoformat()
+            appeal_data['status'] = 'pending'
+            appeal_data['created_at'] = datetime.now().isoformat()
+            appeal_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('appeals').insert(appeal_data).execute()
+            if result.data:
+                return result.data[0]
         except Exception as e:
             print(f"⚠️ Supabase add_appeal error: {e}")
             # Fall through to local

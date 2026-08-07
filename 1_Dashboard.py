@@ -1,16 +1,21 @@
 import streamlit as st
-import pandas as pd
-from db import get_vehicles, get_violations, get_payments, get_notifications
 import auth
 
-# ---- Page Config ----
-st.set_page_config(page_title="Dashboard - DriveBD", page_icon="📊", layout="wide")
+# Must be first Streamlit command
+st.set_page_config(
+    page_title="Dashboard - DriveBD",
+    page_icon="📊",
+    layout="wide"
+)
 
-# ---- Auth Check ----
+# Check authentication
 auth.require_login()
-user = auth.current_user()
 
+# ---- Page Content ----
 st.title("📊 Dashboard")
+st.write("Welcome to your Dashboard!")
+
+# Add your dashboard content here
 st.caption(f"Welcome back, {user['name']}")
 
 # ---- Get Data ----

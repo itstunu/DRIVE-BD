@@ -28,7 +28,6 @@ else:
 
 # ---- Calculate Stats ----
 unpaid_fines = sum(v.get("fine_amount", 0) for v in violations if v.get("status") == "unpaid")
-total_paid = sum(p.get("amount", 0) for p in payments if p.get("status") == "completed")
 unread_count = len([n for n in get_notifications(user["user_id"]) if not n.get("is_read", False)])
 
 # ---- Display Metrics ----
@@ -65,7 +64,6 @@ with col2:
             "Amount (BDT)": p.get("amount", 0),
             "Method": p.get("payment_method", ""),
             "Status": p.get("status", ""),
-            "Reference": p.get("transaction_id", "")[:8]
         } for p in sorted(payments, key=lambda x: x.get("payment_date", ""), reverse=True)[:8]])
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:

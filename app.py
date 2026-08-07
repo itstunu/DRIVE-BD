@@ -13,6 +13,36 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
+# ---- HIDE STREAMLIT'S AUTOMATIC SIDEBAR NAVIGATION ----
+st.markdown("""
+<style>
+    /* Hide the automatic page navigation in sidebar */
+    section[data-testid="stSidebar"] .stMarkdown:has(.stPageLink) {
+        display: none !important;
+    }
+    
+    /* Hide the "app" label that Streamlit adds automatically */
+    .stSidebar .st-emotion-cache-1v3fvcr {
+        display: none !important;
+    }
+    
+    /* Hide Streamlit's default navigation container */
+    .stSidebar .st-emotion-cache-1r6slb0 {
+        display: none !important;
+    }
+    
+    /* Hide the entire navigation section */
+    .stSidebarNav {
+        display: none !important;
+    }
+    
+    /* Hide any default page links */
+    .stSidebar .stPageLink {
+        display: none !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # ---- SIDEBAR ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
@@ -20,7 +50,7 @@ with st.sidebar:
     st.markdown("---")
     
     if auth.is_logged_in():
-        # ---- CUSTOM NAVIGATION MENU (ONLY ONCE!) ----
+        # ---- CUSTOM NAVIGATION MENU (ONLY ONE!) ----
         st.markdown("**app**")
         
         # Create clickable navigation links
@@ -56,27 +86,25 @@ with st.sidebar:
 if auth.is_logged_in():
     user = auth.current_user()
     
-    # Main content
     st.title("🚗 DriveBD")
     st.subheader("Smart Driver & Vehicle Owner Portal")
     st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
     
-    # Use st.columns with st.markdown to display email as plain text
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
             <p style="font-size:12px; color:#888; margin:0;">📋 ROLE</p>
-            <p style="font-size:18px; font-weight:bold; margin:5px 0 0 0;">""" + user["role"].title() + """</p>
+            <p style="font-size:18px; font-weight:bold; margin:5px 0 0 0;">{user['role'].title()}</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
             <p style="font-size:12px; color:#888; margin:0;">📧 EMAIL</p>
-            <p style="font-size:14px; font-weight:bold; margin:5px 0 0 0; word-break:break-all;">""" + user["email"] + """</p>
+            <p style="font-size:14px; font-weight:bold; margin:5px 0 0 0; word-break:break-all;">{user['email']}</p>
         </div>
         """, unsafe_allow_html=True)
     

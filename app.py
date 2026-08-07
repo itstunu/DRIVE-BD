@@ -13,7 +13,7 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- HIDE STREAMLIT'S AUTOMATIC NAVIGATION ----
+# ---- HIDE STREAMLIT'S AUTOMATIC NAVIGATION & "View less" ----
 st.markdown("""
 <style>
     .stSidebarNav { display: none !important; }
@@ -24,14 +24,23 @@ st.markdown("""
     .stSidebar .st-emotion-cache-1v3fvcr + div { display: none !important; }
     .stSidebar ul { display: none !important; }
     .stSidebar a[data-testid="stPageLink"] { display: none !important; }
+    
+    /* Hide "View less" button */
+    .stSidebar button[kind="secondary"] { display: none !important; }
+    
+    /* Hide the expand/collapse arrows */
+    .stSidebar .st-emotion-cache-16idsys { display: none !important; }
+    
+    /* Hide sidebar header completely */
+    .stSidebar > div:first-child > div:first-child {
+        display: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    st.markdown("### 🚗 DriveBD")
-    st.markdown("Smart Driver & Vehicle Portal")
-    st.markdown("---")
+    # No title here - sidebar header is hidden via CSS
     
     if auth.is_logged_in():
         st.markdown("**app**")

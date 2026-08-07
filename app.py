@@ -64,7 +64,7 @@ if auth.is_logged_in():
     with col1:
         st.metric("📋 Role", user["role"].title())
     with col2:
-        # Display email as plain text, NOT a link
+        # Email as plain text - NO LINK
         st.metric("📧 Email", user["email"])
     with col3:
         st.metric("✅ Status", "Active")

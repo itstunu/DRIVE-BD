@@ -38,6 +38,28 @@ with st.sidebar:
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
             st.rerun()
+        
+        # ---- Navigation Links ----
+        st.markdown("---")
+        st.markdown("### 📋 Navigation")
+        st.markdown("[🏠 Home](/)")
+        st.markdown("[📊 Dashboard](/Dashboard)")
+        st.markdown("[🚗 Vehicles](/Vehicles)")
+        st.markdown("[🚨 Violations](/Violations)")
+        st.markdown("[💳 Payments](/Payments)")
+        st.markdown("[📄 Documents](/Documents)")
+        st.markdown("[🔧 Service History](/Service_History)")
+        st.markdown("[🔔 Notifications](/Notifications)")
+        st.markdown("[⚖️ Appeals](/Appeals)")
+        
+        if user['role'].lower() in ['admin', 'administrator']:
+            st.markdown("---")
+            st.markdown("### 🔐 Admin")
+            st.markdown("[🛡️ Admin Panel](/Admin)")
+            st.markdown("[📈 Reports](/Reports)")
+            st.markdown("[📊 Analytics](/Analytics)")
+            st.markdown("[🔌 Mock BRTA API](/Mock_BRTA_API)")
+            st.markdown("[🧠 AI Demo](/AI_Demo)")
     else:
         st.info("👈 Please log in")
 
@@ -45,22 +67,87 @@ with st.sidebar:
 if auth.is_logged_in():
     user = auth.current_user()
     
-    # ---- REDIRECT TO DASHBOARD AFTER LOGIN ----
-    # This ensures the sidebar shows the page links
-    st.switch_page("pages/1_Dashboard.py")
+    # Check if we're already on a page
+    current_page = st.query_params.get("page", "home")
     
+    if current_page == "home":
+        # Show home page content
+        st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
+        st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal</p>', unsafe_allow_html=True)
+        st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
+        st.info("👈 Use the sidebar to navigate to different modules.")
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f'<div class="metric-card"><b>Role</b><br>{user["role"].title()}</div>', unsafe_allow_html=True)
+        with col2:
+            st.markdown(f'<div class="metric-card"><b>Email</b><br>{user["email"]}</div>', unsafe_allow_html=True)
+        with col3:
+            st.markdown(f'<div class="metric-card"><b>User ID</b><br>{user["user_id"][:8]}...</div>', unsafe_allow_html=True)
+        
+        # Quick action buttons
+        st.divider()
+        st.subheader("🚀 Quick Actions")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            if st.button("📊 Dashboard", use_container_width=True):
+                st.query_params["page"] = "dashboard"
+                st.rerun()
+        with col2:
+            if st.button("🚗 Vehicles", use_container_width=True):
+                st.query_params["page"] = "vehicles"
+                st.rerun()
+        with col3:
+            if st.button("🚨 Violations", use_container_width=True):
+                st.query_params["page"] = "violations"
+                st.rerun()
+        with col4:
+            if st.button("💳 Payments", use_container_width=True):
+                st.query_params["page"] = "payments"
+                st.rerun()
+    
+    elif current_page == "dashboard":
+        st.switch_page("pages/1_Dashboard.py")
+    elif current_page == "vehicles":
+        st.switch_page("pages/2_Vehicles.py")
+    elif current_page == "violations":
+        st.switch_page("pages/3_Violations.py")
+    elif current_page == "payments":
+        st.switch_page("pages/4_Payments.py")
+    elif current_page == "documents":
+        st.switch_page("pages/5_Documents.py")
+    elif current_page == "service_history":
+        st.switch_page("pages/6_Service_History.py")
+    elif current_page == "notifications":
+        st.switch_page("pages/7_Notifications.py")
+    elif current_page == "appeals":
+        st.switch_page("pages/8_Appeals.py")
+    elif current_page == "admin":
+        st.switch_page("pages/9_Admin.py")
+    elif current_page == "reports":
+        st.switch_page("pages/10_Reports.py")
+    elif current_page == "analytics":
+        st.switch_page("pages/11_Analytics.py")
+    elif current_page == "mock_brta_api":
+        st.switch_page("pages/12_Mock_BRTA_API.py")
+    elif current_page == "ai_demo":
+        st.switch_page("pages/13_AI_Demo.py")
+    else:
+        st.query_params["page"] = "home"
+        st.rerun()
+
 else:
+    # ---- LOGIN PAGE ----
     left, right = st.columns([1.1, 1])
     with left:
         st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
         st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal for Bangladesh</p>', unsafe_allow_html=True)
         st.write("""
         DriveBD is a unified portal for vehicle owners and drivers to manage registrations,
-        traffic violations, fines, documents, service history and more — with a mock BRTA
-        integration and a demo AI violation detector.
+        traffic violations, fines, documents, service history and more.
         """)
         st.markdown("""
-        **Demo accounts (pre-seeded):**
+        **Demo accounts:**
         - 👤 Owner demo: `demo@drivebd.gov.bd` / `Demo@123`
         - 🛡️ Admin demo: `admin@drivebd.gov.bd` / `Admin@123`
         """)
@@ -75,6 +162,7 @@ else:
                 submitted = st.form_submit_button("Log In")
                 if submitted:
                     if auth.login(email, password):
+                        st.query_params["page"] = "dashboard"
                         st.rerun()
                     else:
                         st.error("Invalid email or password.")

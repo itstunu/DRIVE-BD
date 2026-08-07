@@ -23,7 +23,7 @@ div.stButton > button:hover {background-color: #0847C4; color: white;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---- Sidebar (Only user info and logout) ----
+# ---- SIDEBAR (Only user info + logout, NO navigation) ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
     st.markdown("---")
@@ -35,14 +35,13 @@ with st.sidebar:
         st.markdown(f"🔑 Role: **{user['role'].title()}**")
         st.markdown("---")
         
-        # Logout button
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
             st.rerun()
     else:
         st.info("👈 Please log in")
 
-# ---- MAIN APP LOGIC ----
+# ---- MAIN APP CONTENT ----
 if auth.is_logged_in():
     user = auth.current_user()
     st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)

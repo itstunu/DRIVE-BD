@@ -13,6 +13,19 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
+# ---- HIDE STREAMLIT'S DEFAULT NAV ----
+st.markdown("""
+<style>
+    .stSidebarNav { display: none !important; }
+    .stSidebar .st-emotion-cache-1r6slb0 { display: none !important; }
+    .stSidebar .st-emotion-cache-1v3fvcr { display: none !important; }
+    .stSidebar .stPageLink { display: none !important; }
+    .stSidebar ul { display: none !important; }
+    .stSidebar a[data-testid="stPageLink"] { display: none !important; }
+    section[data-testid="stSidebar"] .stMarkdown:has(a) { display: none !important; }
+</style>
+""", unsafe_allow_html=True)
+
 # ---- SIDEBAR ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
@@ -25,49 +38,45 @@ with st.sidebar:
         st.markdown(f"*{user['role'].title()}*")
         st.markdown("---")
         
-        # ---- Create navigation menu ----
         st.markdown("**app**")
         
-        # Define pages with their display names and icons
-        pages = {
-            "📊 Dashboard": "dashboard",
-            "🚗 Vehicles": "vehicles",
-            "⚠️ Violations": "violations",
-            "💰 Payments": "payments",
-            "📄 Documents": "documents",
-            "🔧 Service History": "service_history",
-            "🔔 Notifications": "notifications",
-            "⚖️ Appeals": "appeals",
-            "👑 Admin": "admin",
-            "📈 Reports": "reports",
-            "📉 Analytics": "analytics",
-            "🔌 Mock BRTA API": "mock_brta_api",
-            "🤖 AI Demo": "ai_demo"
-        }
+        # ---- PAGES ----
+        if "page" not in st.session_state:
+            st.session_state.page = "Dashboard"
         
-        # Store selected page in session state
-        if "selected_page" not in st.session_state:
-            st.session_state.selected_page = "dashboard"
+        pages = [
+            "📊 Dashboard",
+            "🚗 Vehicles",
+            "⚠️ Violations",
+            "💰 Payments",
+            "📄 Documents",
+            "🔧 Service History",
+            "🔔 Notifications",
+            "⚖️ Appeals",
+            "👑 Admin",
+            "📈 Reports",
+            "📉 Analytics",
+            "🔌 Mock BRTA API",
+            "🤖 AI Demo"
+        ]
         
-        for label, page_id in pages.items():
-            # Highlight active page
-            button_style = "primary" if st.session_state.selected_page == page_id else "secondary"
-            if st.button(label, key=page_id, use_container_width=True, type=button_style):
-                st.session_state.selected_page = page_id
+        for p in pages:
+            if st.button(p, key=p, use_container_width=True):
+                st.session_state.page = p
                 st.rerun()
         
         st.markdown("---")
         
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
-            st.session_state.selected_page = "dashboard"
+            st.session_state.page = "Dashboard"
             st.rerun()
     else:
         st.info("👋 Please log in")
 
 # ---- PAGE CONTENT ----
 if not auth.is_logged_in():
-    # Show login page
+    # ---- LOGIN PAGE ----
     left, right = st.columns([1.1, 1])
     with left:
         st.title("🚗 DriveBD")
@@ -117,12 +126,11 @@ if not auth.is_logged_in():
 else:
     # ---- SHOW SELECTED PAGE ----
     user = auth.current_user()
-    selected = st.session_state.selected_page
+    page = st.session_state.page
     
-    if selected == "dashboard":
+    if page == "📊 Dashboard":
         st.title("📊 Dashboard")
         st.write(f"Welcome back, **{user['name']}**!")
-        
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("🚗 Vehicles", "0")
@@ -131,65 +139,65 @@ else:
         with col3:
             st.metric("💰 Payments", "$0")
     
-    elif selected == "vehicles":
+    elif page == "🚗 Vehicles":
         st.title("🚗 Vehicles")
         st.write("Manage your vehicles here.")
         st.info("Vehicle management coming soon!")
     
-    elif selected == "violations":
+    elif page == "⚠️ Violations":
         st.title("⚠️ Violations")
         st.write("View and manage traffic violations.")
         st.info("Violation management coming soon!")
     
-    elif selected == "payments":
+    elif page == "💰 Payments":
         st.title("💰 Payments")
         st.write("Make payments for violations.")
         st.info("Payment processing coming soon!")
     
-    elif selected == "documents":
+    elif page == "📄 Documents":
         st.title("📄 Documents")
         st.write("Upload and manage your documents.")
         st.info("Document management coming soon!")
     
-    elif selected == "service_history":
+    elif page == "🔧 Service History":
         st.title("🔧 Service History")
         st.write("Track your vehicle service history.")
         st.info("Service history coming soon!")
     
-    elif selected == "notifications":
+    elif page == "🔔 Notifications":
         st.title("🔔 Notifications")
         st.write("View your notifications.")
         st.info("Notifications coming soon!")
     
-    elif selected == "appeals":
+    elif page == "⚖️ Appeals":
         st.title("⚖️ Appeals")
         st.write("File appeals for violations.")
         st.info("Appeals management coming soon!")
     
-    elif selected == "admin":
+    elif page == "👑 Admin":
         st.title("👑 Admin Panel")
-        st.write("Administrative controls.")
         if user['role'].lower() != 'admin':
             st.error("⚠️ You need Admin privileges to access this page.")
         else:
+            st.write("Administrative controls.")
             st.info("Admin panel coming soon!")
     
-    elif selected == "reports":
+    elif page == "📈 Reports":
         st.title("📈 Reports")
         st.write("Generate and view reports.")
         st.info("Reports coming soon!")
     
-    elif selected == "analytics":
+    elif page == "📉 Analytics":
         st.title("📉 Analytics")
         st.write("View analytics and insights.")
         st.info("Analytics coming soon!")
     
-    elif selected == "mock_brta_api":
+    elif page == "🔌 Mock BRTA API":
         st.title("🔌 Mock BRTA API")
         st.write("Simulate BRTA API integration.")
         st.info("BRTA API simulation coming soon!")
     
-    elif selected == "ai_demo":
+    elif page == "🤖 AI Demo":
         st.title("🤖 AI Demo")
         st.write("AI-powered features demo.")
         st.info("AI features coming soon!")

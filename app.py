@@ -13,60 +13,23 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- SUPER AGGRESSIVE CSS TO HIDE STREAMLIT'S DEFAULT NAV ----
+# ---- CSS TO HIDE ONLY STREAMLIT'S DEFAULT NAV ----
 st.markdown("""
 <style>
-    /* Kill everything Streamlit adds automatically */
+    /* Hide only Streamlit's automatic page navigation */
     .stSidebarNav {
         display: none !important;
     }
-    .stSidebar .st-emotion-cache-1r6slb0 {
-        display: none !important;
-    }
+    /* Hide the "app" header that Streamlit adds automatically */
     .stSidebar .st-emotion-cache-1v3fvcr {
         display: none !important;
     }
-    .stSidebar .stPageLink {
-        display: none !important;
-    }
-    .stSidebar .st-emotion-cache-1wrcr25 {
-        display: none !important;
-    }
-    .stSidebar .st-emotion-cache-1v3fvcr + div {
-        display: none !important;
-    }
-    .stSidebar ul {
-        display: none !important;
-    }
+    /* Hide page links */
     .stSidebar a[data-testid="stPageLink"] {
         display: none !important;
     }
-    section[data-testid="stSidebar"] .stMarkdown:has(a) {
-        display: none !important;
-    }
-    .stSidebar .st-emotion-cache-1r6slb0 + div {
-        display: none !important;
-    }
-    .stSidebar .st-emotion-cache-1v3fvcr + div + div {
-        display: none !important;
-    }
-    /* Kill the "View less" and "View more" */
-    .stSidebar button[kind="secondary"] {
-        display: none !important;
-    }
-    /* Kill any navigation container */
-    .stSidebar [data-testid="stSidebarNav"] {
-        display: none !important;
-    }
-    /* Force hide everything with "app" text */
-    .stSidebar .st-emotion-cache-1v3fvcr:contains("app") {
-        display: none !important;
-    }
-    /* Hide the entire first child of sidebar after header */
-    .stSidebar > div:first-child {
-        display: block !important;
-    }
-    .stSidebar > div:nth-child(2) {
+    /* Hide the navigation container */
+    .stSidebar .st-emotion-cache-1r6slb0 {
         display: none !important;
     }
 </style>
@@ -171,6 +134,7 @@ else:
     if page == "📊 Dashboard":
         st.title("📊 Dashboard")
         st.write(f"Welcome back, **{user['name']}**!")
+        
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("🚗 Vehicles", "0")
@@ -178,6 +142,7 @@ else:
             st.metric("⚠️ Violations", "0")
         with col3:
             st.metric("💰 Payments", "$0")
+        
         st.divider()
         st.info("Use the sidebar to navigate to different modules.")
     

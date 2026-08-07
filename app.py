@@ -16,28 +16,38 @@ init_db()
 # ---- HIDE STREAMLIT'S AUTOMATIC SIDEBAR NAVIGATION ----
 st.markdown("""
 <style>
-    /* Hide the automatic page navigation in sidebar */
-    section[data-testid="stSidebar"] .stMarkdown:has(.stPageLink) {
-        display: none !important;
-    }
-    
-    /* Hide the "app" label that Streamlit adds automatically */
-    .stSidebar .st-emotion-cache-1v3fvcr {
-        display: none !important;
-    }
-    
-    /* Hide Streamlit's default navigation container */
-    .stSidebar .st-emotion-cache-1r6slb0 {
-        display: none !important;
-    }
-    
-    /* Hide the entire navigation section */
+    /* Hide Streamlit's default navigation completely */
     .stSidebarNav {
         display: none !important;
     }
     
-    /* Hide any default page links */
+    /* Hide the "app" header that Streamlit adds */
+    .stSidebar .st-emotion-cache-1v3fvcr {
+        display: none !important;
+    }
+    
+    /* Hide the navigation container */
+    .stSidebar .st-emotion-cache-1r6slb0 {
+        display: none !important;
+    }
+    
+    /* Hide any page links */
     .stSidebar .stPageLink {
+        display: none !important;
+    }
+    
+    /* Hide the entire navigation section */
+    section[data-testid="stSidebar"] .stMarkdown:has(a) {
+        display: none !important;
+    }
+    
+    /* Hide the "View less" and similar elements */
+    .stSidebar .st-emotion-cache-1v3fvcr + div {
+        display: none !important;
+    }
+    
+    /* Hide the scrollable navigation area */
+    .stSidebar .st-emotion-cache-1wrcr25 {
         display: none !important;
     }
 </style>

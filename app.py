@@ -13,14 +13,26 @@ st.set_page_config(
 
 init_db()
 
-# ---- HIDE STREAMLIT DEFAULT NAV ----
+# ---- HIDE STREAMLIT DEFAULT NAV & VIEW LESS ----
 st.markdown("""
 <style>
+    /* Hide Streamlit's default navigation */
     .stSidebarNav { display: none !important; }
     .stSidebar .st-emotion-cache-1v3fvcr { display: none !important; }
     .stSidebar .st-emotion-cache-1r6slb0 { display: none !important; }
     .stSidebar a[data-testid="stPageLink"] { display: none !important; }
     .stSidebar ul { display: none !important; }
+    
+    /* Hide "View less" text */
+    .stSidebar .st-emotion-cache-1wrcr25 { display: none !important; }
+    .stSidebar button[kind="secondary"] { display: none !important; }
+    .stSidebar .st-emotion-cache-1v3fvcr + div { display: none !important; }
+    
+    /* Hide the expand/collapse arrows */
+    .stSidebar .st-emotion-cache-16idsys { display: none !important; }
+    
+    /* Remove extra spacing */
+    .stSidebar > div:first-child { padding-top: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -67,12 +79,15 @@ with st.sidebar:
             st.session_state.page = "Dashboard"
             st.rerun()
     else:
-        st.info("👋 Please log in to access the application.")
+        st.info("👋 Please log in")
 
 # ============================================================
 # MAIN CONTENT - FRONT PAGE (Login/Register)
 # ============================================================
 if not auth.is_logged_in():
+    # Clear any leftover content
+    st.empty()
+    
     st.title("🚗 DriveBD")
     st.subheader("Smart Driver & Vehicle Owner Portal for Bangladesh")
     st.write("Manage registrations, violations, payments, documents, and service history.")
@@ -176,7 +191,7 @@ else:
                             st.success("✅ Vehicle registered successfully!")
                             st.rerun()
                         else:
-                            st.error("❌ Registration failed. Number may already exist.")
+                            st.error("❌ Registration failed.")
         vehicles = get_vehicles(user_id)
         if vehicles:
             df = pd.DataFrame(vehicles)
@@ -295,7 +310,7 @@ else:
     # ---------- SERVICE HISTORY ----------
     elif page == "🔧 Service History":
         st.title("🔧 Service History")
-        st.info("Service history tracking will be available here.")
+        st.info("📝 Service history tracking coming soon.")
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Services", "0")
         c2.metric("Last Service", "N/A")
@@ -366,7 +381,7 @@ else:
     # ---------- ANALYTICS ----------
     elif page == "📉 Analytics":
         st.title("📉 Analytics")
-        st.info("📊 Analytics dashboard with charts coming soon.")
+        st.info("📊 Analytics dashboard coming soon.")
         c1, c2 = st.columns(2)
         c1.metric("🚗 Vehicles", len(get_vehicles()))
         c2.metric("⚠️ Violations", len(get_violations()))
@@ -400,7 +415,7 @@ else:
         with tab2:
             msg = st.text_input("Ask about traffic rules...")
             if msg:
-                st.info("🤖 Speeding fines range from $50 to $500 depending on the speed.")
+                st.info("🤖 Speeding fines range from $50 to $500.")
 
     st.divider()
     st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

@@ -13,10 +13,10 @@ st.set_page_config(
 # ---- Initialize Database ----
 init_db()
 
-# ---- COMPLETELY HIDE STREAMLIT'S AUTOMATIC NAVIGATION ----
+# ---- FORCE HIDE STREAMLIT'S AUTOMATIC NAVIGATION ----
 st.markdown("""
 <style>
-    /* Hide Streamlit's default page navigation */
+    /* Hide Streamlit's default navigation completely */
     .stSidebarNav {
         display: none !important;
     }
@@ -26,44 +26,39 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hide the "app" header that Streamlit adds automatically */
+    /* Hide the "app" header that Streamlit adds */
     .stSidebar .st-emotion-cache-1v3fvcr {
         display: none !important;
     }
     
-    /* Hide all page links */
+    /* Hide all page links in sidebar */
     .stSidebar .stPageLink {
         display: none !important;
     }
     
-    /* Hide the scrollable navigation area */
+    /* Hide the entire scrollable navigation area */
     .stSidebar .st-emotion-cache-1wrcr25 {
         display: none !important;
     }
     
-    /* Hide the "View less" button */
-    .stSidebar button[kind="secondary"] {
-        display: none !important;
-    }
-    
-    /* Hide navigation UL/LI */
-    .stSidebar ul {
-        display: none !important;
-    }
-    
-    /* Hide any div with page links */
+    /* Hide any div containing page links */
     .stSidebar .st-emotion-cache-1r6slb0 + div {
         display: none !important;
     }
     
-    /* Hide the expand/collapse arrows */
-    .stSidebar .st-emotion-cache-16idsys {
+    /* Hide the "View less" and similar elements */
+    .stSidebar .st-emotion-cache-1v3fvcr + div {
         display: none !important;
     }
     
-    /* Remove extra padding from sidebar */
-    .stSidebar > div:first-child {
-        padding-top: 0 !important;
+    /* Hide Streamlit's navigation UL/LI */
+    .stSidebar ul {
+        display: none !important;
+    }
+    
+    /* Hide navigation links */
+    .stSidebar a[data-testid="stPageLink"] {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -75,12 +70,7 @@ with st.sidebar:
     st.markdown("---")
     
     if auth.is_logged_in():
-        user = auth.current_user()
-        st.markdown(f"👤 **{user['name']}**")
-        st.markdown(f"*{user['role'].title()}*")
-        st.markdown("---")
-        
-        # ---- CUSTOM NAVIGATION MENU (ONLY ONE!) ----
+        # ---- CUSTOM NAVIGATION MENU ----
         st.markdown("**app**")
         
         # Create clickable navigation links

@@ -6,7 +6,8 @@ import auth
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"  # ← This ensures sidebar is visible
 )
 
 # ---- Initialize Database ----
@@ -20,16 +21,64 @@ st.markdown("""
 div.stButton > button {background-color: #0B5FFF; color: white; border-radius: 8px; border:none;}
 div.stButton > button:hover {background-color: #0847C4; color: white;}
 .metric-card {background:#F0F5FF; padding:16px; border-radius:10px; border:1px solid #D6E4FF;}
+
+/* Sidebar styling */
+.css-1d391kg {background-color: #f0f2f6;}
+.css-1d391kg .st-emotion-cache-1v0mbdj {color: #0B5FFF;}
 </style>
 """, unsafe_allow_html=True)
 
+# ---- Sidebar Content (visible when logged in) ----
+def show_sidebar():
+    """Display sidebar navigation"""
+    with st.sidebar:
+        st.markdown("### 🚗 DriveBD")
+        st.markdown("---")
+        
+        if auth.is_logged_in():
+            user = auth.current_user()
+            st.markdown(f"👤 **{user['name']}**")
+            st.markdown(f"📧 {user['email']}")
+            st.markdown(f"🔑 Role: **{user['role'].title()}**")
+            st.markdown("---")
+            
+            # Navigation links (these will auto-navigate to pages in pages/ folder)
+            st.page_link("app.py", label="🏠 Home", icon="🏠")
+            st.markdown("### 📋 Modules")
+            st.page_link("pages/1_Dashboard.py", label="📊 Dashboard", icon="📊")
+            st.page_link("pages/2_Vehicles.py", label="🚗 Vehicles", icon="🚗")
+            st.page_link("pages/3_Violations.py", label="🚨 Violations", icon="🚨")
+            st.page_link("pages/4_Payments.py", label="💳 Payments", icon="💳")
+            st.page_link("pages/5_Documents.py", label="📄 Documents", icon="📄")
+            st.page_link("pages/6_Service_History.py", label="🔧 Service History", icon="🔧")
+            st.page_link("pages/7_Notifications.py", label="🔔 Notifications", icon="🔔")
+            st.page_link("pages/8_Appeals.py", label="⚖️ Appeals", icon="⚖️")
+            
+            if user['role'] == 'admin' or user['role'] == 'Admin':
+                st.markdown("---")
+                st.markdown("### 🔐 Admin")
+                st.page_link("pages/9_Admin.py", label="🛡️ Admin Panel", icon="🛡️")
+                st.page_link("pages/10_Reports.py", label="📈 Reports", icon="📈")
+                st.page_link("pages/11_Analytics.py", label="📊 Analytics", icon="📊")
+            
+            st.markdown("---")
+            if st.button("🚪 Logout", use_container_width=True):
+                auth.logout()
+                st.rerun()
+        else:
+            st.info("👈 Please log in to access the dashboard")
+
 # ---- MAIN APP LOGIC ----
+# Show sidebar on every page
+show_sidebar()
+
+# ---- Main content ----
 if auth.is_logged_in():
     user = auth.current_user()
     st.markdown('<p class="main-header">🚗 DriveBD</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Smart Driver & Vehicle Owner Portal</p>', unsafe_allow_html=True)
     st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
-    st.info("Use the sidebar to navigate to Dashboard, Vehicles, Violations, Payments and other modules.")
+    st.info("👈 Use the sidebar to navigate to different modules.")
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -37,9 +86,7 @@ if auth.is_logged_in():
     with col2:
         st.markdown(f'<div class="metric-card"><b>Email</b><br>{user["email"]}</div>', unsafe_allow_html=True)
     with col3:
-        if st.button("Log out"):
-            auth.logout()
-            st.rerun()
+        st.markdown(f'<div class="metric-card"><b>User ID</b><br>{user["user_id"][:8]}...</div>', unsafe_allow_html=True)
 else:
     left, right = st.columns([1.1, 1])
     with left:

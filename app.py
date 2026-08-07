@@ -20,11 +20,6 @@ with st.sidebar:
     st.markdown("---")
     
     if auth.is_logged_in():
-        user = auth.current_user()
-        st.markdown(f"**👤 {user['name']}**")
-        st.markdown(f"*{user['role'].title()}*")
-        st.markdown("---")
-        
         # ---- CUSTOM NAVIGATION MENU ----
         st.markdown("**app**")
         
@@ -69,6 +64,7 @@ if auth.is_logged_in():
     with col1:
         st.metric("📋 Role", user["role"].title())
     with col2:
+        # Display email as plain text, NOT a link
         st.metric("📧 Email", user["email"])
     with col3:
         st.metric("✅ Status", "Active")

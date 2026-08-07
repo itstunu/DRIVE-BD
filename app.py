@@ -1,92 +1,114 @@
 import streamlit as st
-import pandas as pd
-from db import get_vehicles, get_violations, get_payments, get_notifications
+from db import init_db
 import auth
 
-# ---- Page Config ----
-st.set_page_config(page_title="Dashboard - DriveBD", page_icon="📊", layout="wide")
+# ---- MUST BE FIRST ----
+st.set_page_config(
+    page_title="DriveBD - Smart Driver & Vehicle Portal",
+    page_icon="🚗",
+    layout="wide"
+)
 
-# ---- Auth Check ----
-auth.require_login()
-user = auth.current_user()
+# ---- Initialize Database ----
+init_db()
 
-st.title("📊 Dashboard")
-st.caption(f"Welcome back, {user['name']}")
+# ---- Sidebar ----
+with st.sidebar:
+    st.markdown("### 🚗 DriveBD")
+    st.markdown("---")
+    
+    if auth.is_logged_in():
+        user = auth.current_user()
+        st.markdown(f"👤 **{user['name']}**")
+        st.markdown(f"📧 {user['email']}")
+        st.markdown(f"🔑 Role: **{user['role'].title()}**")
+        st.markdown("---")
+        
+        if st.button("🚪 Logout", use_container_width=True):
+            auth.logout()
+            st.rerun()
+    else:
+        st.info("👈 Please log in")
 
-# ---- Get Data ----
-if user["role"].lower() == "admin":
-    vehicles = get_vehicles()
-    violations = get_violations()
-    payments = get_payments()
+# ---- MAIN CONTENT ----
+if auth.is_logged_in():
+    user = auth.current_user()
+    st.markdown("### 🚗 DriveBD")
+    st.markdown("Smart Driver & Vehicle Owner Portal")
+    st.success(f"Logged in as **{user['name']}** ({user['role'].title()})")
+    st.info("👈 Use the sidebar to navigate to different modules.")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Role", user['role'].title())
+    with col2:
+        st.metric("Email", user['email'])
+    with col3:
+        st.metric("User ID", user['user_id'][:8] + "...")
+    
+    st.divider()
+    st.subheader("Quick Actions")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        if st.button("📊 Dashboard", use_container_width=True):
+            st.switch_page("pages/1_Dashboard.py")
+    with col2:
+        if st.button("🚗 Vehicles", use_container_width=True):
+            st.switch_page("pages/2_Vehicles.py")
+    with col3:
+        if st.button("🚨 Violations", use_container_width=True):
+            st.switch_page("pages/3_Violations.py")
+    with col4:
+        if st.button("💳 Payments", use_container_width=True):
+            st.switch_page("pages/4_Payments.py")
 else:
-    vehicles = get_vehicles(user["user_id"])
-    violation_list = []
-    for v in vehicles:
-        violation_list.extend(get_violations(v.get("registration_number")))
-    violations = violation_list
-    payments = get_payments(user["user_id"])
+    # ---- LOGIN PAGE ----
+    left, right = st.columns([1.1, 1])
+    with left:
+        st.markdown("### 🚗 DriveBD")
+        st.markdown("Smart Driver & Vehicle Owner Portal for Bangladesh")
+        st.write("""
+        DriveBD is a unified portal for vehicle owners and drivers to manage registrations,
+        traffic violations, fines, documents, service history and more.
+        """)
+        st.markdown("""
+        **Demo accounts:**
+        - 👤 Owner demo: `demo@drivebd.gov.bd` / `Demo@123`
+        - 🛡️ Admin demo: `admin@drivebd.gov.bd` / `Admin@123`
+        """)
 
-# ---- Calculate Stats ----
-unpaid_fines = sum(v.get("fine_amount", 0) for v in violations if v.get("status") == "unpaid")
-unread_count = len([n for n in get_notifications(user["user_id"]) if not n.get("is_read", False)])
+    with right:
+        tab_login, tab_register = st.tabs(["Log In", "Create Account"])
 
-# ---- Display Metrics ----
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Vehicles" if user["role"] != "admin" else "Total Vehicles", len(vehicles))
-c2.metric("Violations", len(violations))
-c3.metric("Unpaid Fines (BDT)", f"{unpaid_fines:,.0f}")
-c4.metric("Unread Notifications", unread_count)
+        with tab_login:
+            with st.form("login_form"):
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Log In")
+                if submitted:
+                    if auth.login(email, password):
+                        st.rerun()
+                    else:
+                        st.error("Invalid email or password.")
 
-st.divider()
-
-# ---- Recent Violations ----
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("Recent Violations")
-    if violations:
-        df = pd.DataFrame([{
-            "Date": v.get("violation_date", "")[:10],
-            "Type": v.get("violation_type", ""),
-            "Vehicle": v.get("vehicle_number", ""),
-            "Fine (BDT)": v.get("fine_amount", 0),
-            "Status": v.get("status", "")
-        } for v in sorted(violations, key=lambda x: x.get("violation_date", ""), reverse=True)[:8]])
-        st.dataframe(df, use_container_width=True, hide_index=True)
-    else:
-        st.info("No violations on record.")
-
-with col2:
-    st.subheader("Recent Payments")
-    if payments:
-        df = pd.DataFrame([{
-            "Date": p.get("payment_date", "")[:10],
-            "Amount (BDT)": p.get("amount", 0),
-            "Method": p.get("payment_method", ""),
-            "Status": p.get("status", ""),
-        } for p in sorted(payments, key=lambda x: x.get("payment_date", ""), reverse=True)[:8]])
-        st.dataframe(df, use_container_width=True, hide_index=True)
-    else:
-        st.info("No payments on record.")
+        with tab_register:
+            with st.form("register_form"):
+                name = st.text_input("Full name")
+                email_r = st.text_input("Email", key="reg_email")
+                phone = st.text_input("Phone number")
+                nid = st.text_input("NID number")
+                role = st.selectbox("Account type", ["driver", "owner"])
+                password_r = st.text_input("Password", type="password", key="reg_pw")
+                submitted_r = st.form_submit_button("Create Account")
+                if submitted_r:
+                    if not (name and email_r and password_r):
+                        st.error("Name, email and password are required.")
+                    else:
+                        ok, msg = auth.register_user(name, email_r, password_r, role, nid=nid, phone=phone)
+                        if ok:
+                            st.success(msg)
+                        else:
+                            st.error(msg)
 
 st.divider()
-
-# ---- Quick Links ----
-st.subheader("Quick Links")
-qc1, qc2, qc3, qc4 = st.columns(4)
-
-with qc1:
-    if st.button("🚙 Manage Vehicles", use_container_width=True):
-        st.switch_page("pages/2_Vehicles.py")
-
-with qc2:
-    if st.button("🚨 View Violations", use_container_width=True):
-        st.switch_page("pages/3_Violations.py")
-
-with qc3:
-    if st.button("💳 Make Payment", use_container_width=True):
-        st.switch_page("pages/4_Payments.py")
-
-with qc4:
-    if st.button("📁 Document Vault", use_container_width=True):
-        st.switch_page("pages/5_Documents.py")
+st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

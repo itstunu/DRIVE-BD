@@ -2,34 +2,37 @@ import streamlit as st
 from db import init_db
 import auth
 
-# ---- MUST BE FIRST STREAMLIT COMMAND ----
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# ---- Initialize Database ----
 init_db()
 
-# ---- CSS TO HIDE ONLY STREAMLIT'S DEFAULT NAV ----
+# ---- FORCE HIDE STREAMLIT'S AUTOMATIC SIDEBAR NAVIGATION ----
 st.markdown("""
 <style>
-    /* Hide only Streamlit's automatic page navigation */
+    /* Hide Streamlit's default page navigation */
     .stSidebarNav {
         display: none !important;
     }
-    /* Hide the "app" header that Streamlit adds automatically */
     .stSidebar .st-emotion-cache-1v3fvcr {
         display: none !important;
     }
-    /* Hide page links */
+    .stSidebar .st-emotion-cache-1r6slb0 {
+        display: none !important;
+    }
     .stSidebar a[data-testid="stPageLink"] {
         display: none !important;
     }
-    /* Hide the navigation container */
-    .stSidebar .st-emotion-cache-1r6slb0 {
+    .stSidebar .st-emotion-cache-1wrcr25 {
+        display: none !important;
+    }
+    .stSidebar .st-emotion-cache-1v3fvcr + div {
+        display: none !important;
+    }
+    .stSidebar ul {
         display: none !important;
     }
 </style>
@@ -74,7 +77,6 @@ with st.sidebar:
                 st.rerun()
         
         st.markdown("---")
-        
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
             st.session_state.page = "Dashboard"
@@ -97,36 +99,27 @@ if not auth.is_logged_in():
 
     with right:
         tab_login, tab_register = st.tabs(["🔐 Log In", "📝 Create Account"])
-
         with tab_login:
             with st.form("login_form"):
                 email = st.text_input("Email")
                 password = st.text_input("Password", type="password")
-                submitted = st.form_submit_button("Log In", use_container_width=True)
-                if submitted:
+                if st.form_submit_button("Log In", use_container_width=True):
                     if auth.login(email, password):
                         st.rerun()
                     else:
                         st.error("Invalid email or password.")
-
         with tab_register:
             with st.form("register_form"):
                 name = st.text_input("Full name")
-                email_r = st.text_input("Email", key="reg_email")
+                email = st.text_input("Email")
                 phone = st.text_input("Phone number")
                 nid = st.text_input("NID number")
                 role = st.selectbox("Account type", ["driver", "owner"])
-                password_r = st.text_input("Password", type="password", key="reg_pw")
-                submitted_r = st.form_submit_button("Create Account", use_container_width=True)
-                if submitted_r:
-                    if not (name and email_r and password_r):
-                        st.error("Name, email and password are required.")
-                    else:
-                        ok, msg = auth.register_user(name, email_r, password_r, role, nid=nid, phone=phone)
-                        if ok:
-                            st.success(msg)
-                        else:
-                            st.error(msg)
+                password = st.text_input("Password", type="password")
+                if st.form_submit_button("Create Account", use_container_width=True):
+                    if name and email and password:
+                        ok, msg = auth.register_user(name, email, password, role, nid, phone)
+                        st.success(msg) if ok else st.error(msg)
 else:
     user = auth.current_user()
     page = st.session_state.page
@@ -134,80 +127,63 @@ else:
     if page == "📊 Dashboard":
         st.title("📊 Dashboard")
         st.write(f"Welcome back, **{user['name']}**!")
-        
         col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("🚗 Vehicles", "0")
-        with col2:
-            st.metric("⚠️ Violations", "0")
-        with col3:
-            st.metric("💰 Payments", "$0")
-        
+        col1.metric("🚗 Vehicles", "0")
+        col2.metric("⚠️ Violations", "0")
+        col3.metric("💰 Payments", "$0")
         st.divider()
         st.info("Use the sidebar to navigate to different modules.")
     
     elif page == "🚗 Vehicles":
         st.title("🚗 Vehicles")
-        st.write("Manage your vehicles here.")
-        st.info("🚧 Vehicle management coming soon!")
+        st.info("Vehicle management coming soon!")
     
     elif page == "⚠️ Violations":
         st.title("⚠️ Violations")
-        st.write("View and manage traffic violations.")
-        st.info("🚧 Violation management coming soon!")
+        st.info("Violation management coming soon!")
     
     elif page == "💰 Payments":
         st.title("💰 Payments")
-        st.write("Make payments for violations.")
-        st.info("🚧 Payment processing coming soon!")
+        st.info("Payment processing coming soon!")
     
     elif page == "📄 Documents":
         st.title("📄 Documents")
-        st.write("Upload and manage your documents.")
-        st.info("🚧 Document management coming soon!")
+        st.info("Document management coming soon!")
     
     elif page == "🔧 Service History":
         st.title("🔧 Service History")
-        st.write("Track your vehicle service history.")
-        st.info("🚧 Service history coming soon!")
+        st.info("Service history coming soon!")
     
     elif page == "🔔 Notifications":
         st.title("🔔 Notifications")
-        st.write("View your notifications.")
-        st.info("🚧 Notifications coming soon!")
+        st.info("Notifications coming soon!")
     
     elif page == "⚖️ Appeals":
         st.title("⚖️ Appeals")
-        st.write("File appeals for violations.")
-        st.info("🚧 Appeals management coming soon!")
+        st.info("Appeals coming soon!")
     
     elif page == "👑 Admin":
-        st.title("👑 Admin Panel")
         if user['role'].lower() != 'admin':
-            st.error("⚠️ You need Admin privileges to access this page.")
+            st.error("⚠️ Admin access only!")
         else:
-            st.write("Administrative controls.")
-            st.info("🚧 Admin panel coming soon!")
+            st.title("👑 Admin Panel")
+            st.info("Admin panel coming soon!")
     
     elif page == "📈 Reports":
         st.title("📈 Reports")
-        st.write("Generate and view reports.")
-        st.info("🚧 Reports coming soon!")
+        st.info("Reports coming soon!")
     
     elif page == "📉 Analytics":
         st.title("📉 Analytics")
-        st.write("View analytics and insights.")
-        st.info("🚧 Analytics coming soon!")
+        st.info("Analytics coming soon!")
     
     elif page == "🔌 Mock BRTA API":
         st.title("🔌 Mock BRTA API")
-        st.write("Simulate BRTA API integration.")
-        st.info("🚧 BRTA API simulation coming soon!")
+        st.info("BRTA API simulation coming soon!")
     
     elif page == "🤖 AI Demo":
         st.title("🤖 AI Demo")
-        st.write("AI-powered features demo.")
-        st.info("🚧 AI features coming soon!")
+        st.info("AI features coming soon!")
 
 st.divider()
 st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")

@@ -4,8 +4,7 @@ Simple bcrypt-based auth using Streamlit session_state (no external auth service
 """
 import bcrypt
 import streamlit as st
-from utils.db import get_session, User, ActivityLog
-
+from db import get_session, User, ActivityLog
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")

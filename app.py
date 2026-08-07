@@ -2,7 +2,6 @@ import streamlit as st
 from db import init_db
 import auth
 
-# ---- MUST BE FIRST STREAMLIT COMMAND ----
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
@@ -10,12 +9,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---- Initialize Database ----
 init_db()
 
-# ---- HIDE STREAMLIT'S AUTOMATIC NAVIGATION & "View less" ----
+# ---- HIDE TITLE AND "VIEW LESS" ----
 st.markdown("""
 <style>
+    /* Hide Streamlit's default navigation */
     .stSidebarNav { display: none !important; }
     .stSidebar .st-emotion-cache-1r6slb0 { display: none !important; }
     .stSidebar .st-emotion-cache-1v3fvcr { display: none !important; }
@@ -28,9 +27,6 @@ st.markdown("""
     /* Hide "View less" button */
     .stSidebar button[kind="secondary"] { display: none !important; }
     
-    /* Hide the expand/collapse arrows */
-    .stSidebar .st-emotion-cache-16idsys { display: none !important; }
-    
     /* Hide sidebar header completely */
     .stSidebar > div:first-child > div:first-child {
         display: none !important;
@@ -40,38 +36,32 @@ st.markdown("""
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    # No title here - sidebar header is hidden via CSS
+    st.markdown("**app**")  # Keep the "app" label and menu
     
-    if auth.is_logged_in():
-        st.markdown("**app**")
-        
-        pages = {
-            "📊 Dashboard": "1_Dashboard",
-            "🚗 Vehicles": "2_Vehicles",
-            "⚠️ Violations": "3_Violations",
-            "💰 Payments": "4_Payments",
-            "📄 Documents": "5_Documents",
-            "🔧 Service History": "6_Service_History",
-            "🔔 Notifications": "7_Notifications",
-            "⚖️ Appeals": "8_Appeals",
-            "👑 Admin": "9_Admin",
-            "📈 Reports": "10_Reports",
-            "📉 Analytics": "11_Analytics",
-            "🔌 Mock BRTA API": "12_Mock_BRTA_API",
-            "🤖 AI Demo": "13_AI_Demo"
-        }
-        
-        for label, page in pages.items():
-            if st.button(label, key=page, use_container_width=True):
-                st.switch_page(f"pages/{page}.py")
-        
-        st.markdown("---")
-        
-        if st.button("🚪 Logout", use_container_width=True):
-            auth.logout()
-            st.rerun()
-    else:
-        st.info("👋 Please log in")
+    pages = {
+        "📊 Dashboard": "1_Dashboard",
+        "🚗 Vehicles": "2_Vehicles",
+        "⚠️ Violations": "3_Violations",
+        "💰 Payments": "4_Payments",
+        "📄 Documents": "5_Documents",
+        "🔧 Service History": "6_Service_History",
+        "🔔 Notifications": "7_Notifications",
+        "⚖️ Appeals": "8_Appeals",
+        "👑 Admin": "9_Admin",
+        "📈 Reports": "10_Reports",
+        "📉 Analytics": "11_Analytics",
+        "🔌 Mock BRTA API": "12_Mock_BRTA_API",
+        "🤖 AI Demo": "13_AI_Demo"
+    }
+    
+    for label, page in pages.items():
+        if st.button(label, key=page, use_container_width=True):
+            st.switch_page(f"pages/{page}.py")
+    
+    st.markdown("---")
+    if st.button("🚪 Logout", use_container_width=True):
+        auth.logout()
+        st.rerun()
 
 # ---- MAIN APP ----
 if auth.is_logged_in():

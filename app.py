@@ -11,10 +11,9 @@ st.set_page_config(
 
 init_db()
 
-# ---- HIDE TITLE AND "VIEW LESS" ----
+# ---- HIDE STREAMLIT DEFAULT NAV + VIEW LESS ----
 st.markdown("""
 <style>
-    /* Hide Streamlit's default navigation */
     .stSidebarNav { display: none !important; }
     .stSidebar .st-emotion-cache-1r6slb0 { display: none !important; }
     .stSidebar .st-emotion-cache-1v3fvcr { display: none !important; }
@@ -23,20 +22,25 @@ st.markdown("""
     .stSidebar .st-emotion-cache-1v3fvcr + div { display: none !important; }
     .stSidebar ul { display: none !important; }
     .stSidebar a[data-testid="stPageLink"] { display: none !important; }
-    
-    /* Hide "View less" button */
     .stSidebar button[kind="secondary"] { display: none !important; }
+    .stSidebar .st-emotion-cache-16idsys { display: none !important; }
     
-    /* Hide sidebar header completely */
+    /* Remove sidebar header (DriveBD title) */
     .stSidebar > div:first-child > div:first-child {
         display: none !important;
+    }
+    
+    /* Keep only the app menu and make it clean */
+    .stSidebar .stMarkdown {
+        font-size: 14px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    st.markdown("**app**")  # Keep the "app" label and menu
+    # Only app menu
+    st.markdown("**app**")
     
     pages = {
         "📊 Dashboard": "1_Dashboard",

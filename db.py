@@ -1,5 +1,5 @@
 """
-DriveBD - Database Layer (Local SQLite)
+DriveBD - Database Layer (Supabase with Local SQLite Fallback)
 """
 import os
 import sqlite3
@@ -7,19 +7,58 @@ import streamlit as st
 from datetime import datetime
 import uuid
 
+# Try to import Supabase
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    print("⚠️ Supabase not installed. Using local SQLite.")
+
+# Database path for local fallback
 DB_PATH = "data/drivebd.db"
+
+# ========== SUPABASE CONNECTION ==========
+
+@st.cache_resource
+def get_supabase():
+    """Get Supabase client if configured"""
+    if not SUPABASE_AVAILABLE:
+        return None
+    
+    try:
+        supabase_url = st.secrets.get("SUPABASE_URL", "")
+        supabase_key = st.secrets.get("SUPABASE_KEY", "")
+        
+        if supabase_url and supabase_key:
+            print("✅ Supabase configured. Using cloud database.")
+            return create_client(supabase_url, supabase_key)
+        else:
+            print("ℹ️ Supabase credentials not found. Using local SQLite.")
+            return None
+    except Exception as e:
+        print(f"⚠️ Supabase connection error: {e}. Using local SQLite.")
+        return None
+
+# Check if using Supabase
+USE_SUPABASE = get_supabase() is not None
 
 # ========== DATABASE INITIALIZATION ==========
 
 def init_db():
-    """Initialize the database with tables"""
+    """Initialize the database (creates tables if needed)"""
+    if USE_SUPABASE:
+        print("✅ Using Supabase - tables should already exist")
+        return True
+    
+    # Local SQLite initialization
     os.makedirs("data", exist_ok=True)
     
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # Users table
+        # Create all tables (same as before)
         c.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -35,7 +74,6 @@ def init_db():
             )
         ''')
         
-        # Vehicles table
         c.execute('''
             CREATE TABLE IF NOT EXISTS vehicles (
                 id TEXT PRIMARY KEY,
@@ -53,7 +91,6 @@ def init_db():
             )
         ''')
         
-        # Violations table
         c.execute('''
             CREATE TABLE IF NOT EXISTS violations (
                 id TEXT PRIMARY KEY,
@@ -68,7 +105,6 @@ def init_db():
             )
         ''')
         
-        # Payments table
         c.execute('''
             CREATE TABLE IF NOT EXISTS payments (
                 id TEXT PRIMARY KEY,
@@ -84,7 +120,6 @@ def init_db():
             )
         ''')
         
-        # Documents table
         c.execute('''
             CREATE TABLE IF NOT EXISTS documents (
                 id TEXT PRIMARY KEY,
@@ -100,7 +135,6 @@ def init_db():
             )
         ''')
         
-        # Notifications table
         c.execute('''
             CREATE TABLE IF NOT EXISTS notifications (
                 id TEXT PRIMARY KEY,
@@ -114,7 +148,6 @@ def init_db():
             )
         ''')
         
-        # Appeals table
         c.execute('''
             CREATE TABLE IF NOT EXISTS appeals (
                 id TEXT PRIMARY KEY,
@@ -131,7 +164,6 @@ def init_db():
             )
         ''')
         
-        # Activity logs table
         c.execute('''
             CREATE TABLE IF NOT EXISTS activity_logs (
                 id TEXT PRIMARY KEY,
@@ -144,7 +176,7 @@ def init_db():
         
         conn.commit()
         conn.close()
-        print("✅ Database initialized successfully")
+        print("✅ Local database initialized")
         return True
         
     except Exception as e:
@@ -154,7 +186,18 @@ def init_db():
 # ========== USER FUNCTIONS ==========
 
 def get_user_by_email(email):
-    """Get user by email"""
+    """Get user by email - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            result = supabase.table('users').select('*').eq('email', email).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase get_user error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -175,11 +218,24 @@ def get_user_by_email(email):
             }
         return None
     except Exception as e:
-        print(f"Error getting user: {e}")
+        print(f"Error getting user from local DB: {e}")
         return None
 
 def create_user_in_db(user_data):
-    """Create a new user"""
+    """Create a new user - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            user_data['created_at'] = datetime.now().isoformat()
+            user_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('users').insert(user_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase create_user error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -208,11 +264,28 @@ def create_user_in_db(user_data):
         conn.close()
         return user_data
     except Exception as e:
-        print(f"Error creating user: {e}")
+        print(f"Error creating user in local DB: {e}")
         return None
 
 def log_activity_db(user_id, action, details=None):
-    """Log user activity"""
+    """Log user activity - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            activity_data = {
+                'user_id': user_id,
+                'action': action,
+                'details': details,
+                'timestamp': datetime.now().isoformat()
+            }
+            result = supabase.table('activity_logs').insert(activity_data).execute()
+            if result.data:
+                return True
+        except Exception as e:
+            print(f"⚠️ Supabase log_activity error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -229,13 +302,27 @@ def log_activity_db(user_id, action, details=None):
         conn.close()
         return True
     except Exception as e:
-        print(f"Error logging activity: {e}")
+        print(f"Error logging activity in local DB: {e}")
         return False
 
 # ========== VEHICLE FUNCTIONS ==========
 
 def get_vehicles(user_id=None):
-    """Get vehicles"""
+    """Get vehicles - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            query = supabase.table('vehicles').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"⚠️ Supabase get_vehicles error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -264,11 +351,24 @@ def get_vehicles(user_id=None):
             })
         return vehicles
     except Exception as e:
-        print(f"Error getting vehicles: {e}")
+        print(f"Error getting vehicles from local DB: {e}")
         return []
 
 def add_vehicle_to_db(vehicle_data):
-    """Add a vehicle"""
+    """Add a vehicle - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            vehicle_data['created_at'] = datetime.now().isoformat()
+            vehicle_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('vehicles').insert(vehicle_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase add_vehicle error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -299,13 +399,27 @@ def add_vehicle_to_db(vehicle_data):
         conn.close()
         return vehicle_data
     except Exception as e:
-        print(f"Error adding vehicle: {e}")
+        print(f"Error adding vehicle to local DB: {e}")
         return None
 
 # ========== VIOLATION FUNCTIONS ==========
 
 def get_violations(vehicle_number=None):
-    """Get violations"""
+    """Get violations - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            query = supabase.table('violations').select('*')
+            if vehicle_number:
+                query = query.eq('vehicle_number', vehicle_number)
+            result = query.execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"⚠️ Supabase get_violations error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -331,11 +445,24 @@ def get_violations(vehicle_number=None):
             })
         return violations
     except Exception as e:
-        print(f"Error getting violations: {e}")
+        print(f"Error getting violations from local DB: {e}")
         return []
 
 def add_violation_to_db(violation_data):
-    """Add a violation"""
+    """Add a violation - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            violation_data['created_at'] = datetime.now().isoformat()
+            violation_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('violations').insert(violation_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase add_violation error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -363,11 +490,25 @@ def add_violation_to_db(violation_data):
         conn.close()
         return violation_data
     except Exception as e:
-        print(f"Error adding violation: {e}")
+        print(f"Error adding violation to local DB: {e}")
         return None
 
 def update_violation_status(violation_id, status):
-    """Update violation status"""
+    """Update violation status - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            result = supabase.table('violations').update({
+                'status': status,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', violation_id).execute()
+            if result.data:
+                return True
+        except Exception as e:
+            print(f"⚠️ Supabase update_violation error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -380,13 +521,27 @@ def update_violation_status(violation_id, status):
         conn.close()
         return True
     except Exception as e:
-        print(f"Error updating violation: {e}")
+        print(f"Error updating violation in local DB: {e}")
         return False
 
 # ========== PAYMENT FUNCTIONS ==========
 
 def get_payments(user_id=None):
-    """Get payments"""
+    """Get payments - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            query = supabase.table('payments').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"⚠️ Supabase get_payments error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -413,11 +568,25 @@ def get_payments(user_id=None):
             })
         return payments
     except Exception as e:
-        print(f"Error getting payments: {e}")
+        print(f"Error getting payments from local DB: {e}")
         return []
 
 def add_payment_to_db(payment_data):
-    """Add a payment"""
+    """Add a payment - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            payment_data['payment_date'] = datetime.now().isoformat()
+            payment_data['created_at'] = datetime.now().isoformat()
+            payment_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('payments').insert(payment_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase add_payment error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -447,13 +616,27 @@ def add_payment_to_db(payment_data):
         conn.close()
         return payment_data
     except Exception as e:
-        print(f"Error adding payment: {e}")
+        print(f"Error adding payment to local DB: {e}")
         return None
 
 # ========== DOCUMENT FUNCTIONS ==========
 
 def get_documents(user_id=None):
-    """Get documents"""
+    """Get documents - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            query = supabase.table('documents').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"⚠️ Supabase get_documents error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -480,11 +663,25 @@ def get_documents(user_id=None):
             })
         return documents
     except Exception as e:
-        print(f"Error getting documents: {e}")
+        print(f"Error getting documents from local DB: {e}")
         return []
 
 def add_document_to_db(document_data):
-    """Add a document"""
+    """Add a document - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            document_data['upload_date'] = datetime.now().isoformat()
+            document_data['created_at'] = datetime.now().isoformat()
+            document_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('documents').insert(document_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase add_document error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -514,13 +711,24 @@ def add_document_to_db(document_data):
         conn.close()
         return document_data
     except Exception as e:
-        print(f"Error adding document: {e}")
+        print(f"Error adding document to local DB: {e}")
         return None
 
 # ========== NOTIFICATION FUNCTIONS ==========
 
 def get_notifications(user_id):
-    """Get notifications"""
+    """Get notifications - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            result = supabase.table('notifications').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"⚠️ Supabase get_notifications error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -542,11 +750,24 @@ def get_notifications(user_id):
             })
         return notifications
     except Exception as e:
-        print(f"Error getting notifications: {e}")
+        print(f"Error getting notifications from local DB: {e}")
         return []
 
 def add_notification_to_db(notification_data):
-    """Add a notification"""
+    """Add a notification - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            notification_data['created_at'] = datetime.now().isoformat()
+            notification_data['is_read'] = False
+            result = supabase.table('notifications').insert(notification_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase add_notification error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -572,11 +793,25 @@ def add_notification_to_db(notification_data):
         conn.close()
         return notification_data
     except Exception as e:
-        print(f"Error adding notification: {e}")
+        print(f"Error adding notification to local DB: {e}")
         return None
 
 def mark_notification_read(notification_id):
-    """Mark notification as read"""
+    """Mark notification as read - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            result = supabase.table('notifications').update({
+                'is_read': True,
+                'read_at': datetime.now().isoformat()
+            }).eq('id', notification_id).execute()
+            if result.data:
+                return True
+        except Exception as e:
+            print(f"⚠️ Supabase mark_notification_read error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -589,13 +824,27 @@ def mark_notification_read(notification_id):
         conn.close()
         return True
     except Exception as e:
-        print(f"Error marking notification read: {e}")
+        print(f"Error marking notification read in local DB: {e}")
         return False
 
 # ========== APPEAL FUNCTIONS ==========
 
 def get_appeals(user_id=None):
-    """Get appeals"""
+    """Get appeals - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            query = supabase.table('appeals').select('*')
+            if user_id:
+                query = query.eq('user_id', user_id)
+            result = query.execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"⚠️ Supabase get_appeals error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -623,11 +872,26 @@ def get_appeals(user_id=None):
             })
         return appeals
     except Exception as e:
-        print(f"Error getting appeals: {e}")
+        print(f"Error getting appeals from local DB: {e}")
         return []
 
 def add_appeal_to_db(appeal_data):
-    """Add an appeal"""
+    """Add an appeal - Supabase first, fallback to local"""
+    if USE_SUPABASE:
+        try:
+            supabase = get_supabase()
+            appeal_data['submission_date'] = datetime.now().isoformat()
+            appeal_data['status'] = 'pending'
+            appeal_data['created_at'] = datetime.now().isoformat()
+            appeal_data['updated_at'] = datetime.now().isoformat()
+            result = supabase.table('appeals').insert(appeal_data).execute()
+            if result.data:
+                return result.data[0]
+        except Exception as e:
+            print(f"⚠️ Supabase add_appeal error: {e}")
+            # Fall through to local
+    
+    # Local SQLite fallback
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -659,5 +923,5 @@ def add_appeal_to_db(appeal_data):
         conn.close()
         return appeal_data
     except Exception as e:
-        print(f"Error adding appeal: {e}")
+        print(f"Error adding appeal to local DB: {e}")
         return None

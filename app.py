@@ -7,66 +7,93 @@ st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded"  # Forces sidebar to be open!
 )
 
 # ---- Initialize Database ----
 init_db()
 
-# ---- Custom CSS for Sidebar ----
+# ---- LIGHT THEME CSS ----
 st.markdown("""
 <style>
+    /* Main app - Light theme */
+    .stApp {
+        background-color: #f5f7fb;
+    }
+    
+    /* Sidebar - Clean Light Theme */
     [data-testid="stSidebar"] {
-        background-color: #0e1f3a;
+        background-color: #ffffff !important;
+        border-right: 1px solid #e6e9ef !important;
+        padding-top: 0.5rem;
     }
     
     [data-testid="stSidebar"] .stMarkdown {
-        color: white;
+        color: #1a1a2e !important;
     }
     
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2, 
-    [data-testid="stSidebar"] h3 {
-        color: white !important;
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] .css-1v3fvcr {
+        color: #1a1a2e !important;
     }
     
+    /* Sidebar header */
     .sidebar-header {
-        color: white !important;
+        color: #0B5FFF !important;
         font-size: 1.8rem !important;
         font-weight: 700 !important;
         text-align: center !important;
-        padding: 1rem 0 0.3rem 0 !important;
-        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 0.5rem 0 0.3rem 0 !important;
+        border-bottom: 2px solid #e6e9ef !important;
         margin-bottom: 0.5rem !important;
     }
     
     .sidebar-subheader {
-        color: rgba(255,255,255,0.5) !important;
+        color: #666 !important;
         font-size: 0.7rem !important;
         text-align: center !important;
         padding-bottom: 1rem !important;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        border-bottom: 1px solid #e6e9ef !important;
     }
     
+    /* User card in sidebar */
     .user-card {
-        background: rgba(255,255,255,0.08);
-        padding: 12px;
-        border-radius: 10px;
-        margin: 10px 0;
-        border: 1px solid rgba(255,255,255,0.05);
+        background: #f0f5ff !important;
+        padding: 12px !important;
+        border-radius: 10px !important;
+        margin: 10px 0 !important;
+        border: 1px solid #d6e4ff !important;
     }
     
     .user-name {
-        color: white !important;
+        color: #1a1a2e !important;
         margin: 0 !important;
         font-size: 0.95rem !important;
         font-weight: 600 !important;
     }
     
     .user-role {
-        color: rgba(255,255,255,0.5) !important;
+        color: #555 !important;
         margin: 0 !important;
         font-size: 0.75rem !important;
+    }
+    
+    .user-email {
+        color: #777 !important;
+        margin: 0 !important;
+        font-size: 0.7rem !important;
+    }
+    
+    /* Navigation label */
+    .nav-label {
+        color: #888 !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        padding: 0.5rem 0 !important;
+        font-weight: 600 !important;
     }
     
     /* Main header */
@@ -83,13 +110,7 @@ st.markdown("""
         margin-top: 0;
     }
     
-    .metric-card {
-        background: #F0F5FF;
-        padding: 16px;
-        border-radius: 10px;
-        border: 1px solid #D6E4FF;
-    }
-    
+    /* Buttons */
     div.stButton > button {
         background-color: #0B5FFF;
         color: white;
@@ -100,6 +121,30 @@ st.markdown("""
     div.stButton > button:hover {
         background-color: #0847C4;
         color: white;
+    }
+    
+    /* Metric cards */
+    .metric-card {
+        background: #ffffff;
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid #e6e9ef;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* Remove the collapse button hiding */
+    button[kind="header"] {
+        display: flex !important;
+    }
+    
+    /* Footer */
+    .footer {
+        color: #999;
+        font-size: 0.7rem;
+        text-align: center;
+        padding: 20px 0;
+        border-top: 1px solid #e6e9ef;
+        margin-top: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -113,17 +158,22 @@ with st.sidebar:
     if auth.is_logged_in():
         user = auth.current_user()
         
-        # User info
+        # User info card
         st.markdown(f"""
         <div class="user-card">
             <p class="user-name">👤 {user['name']}</p>
             <p class="user-role">{user['role'].title()}</p>
+            <p class="user-email">{user['email']}</p>
         </div>
         """, unsafe_allow_html=True)
         
+        st.markdown('<p class="nav-label">📋 Navigation</p>', unsafe_allow_html=True)
+        
+        # Navigation info - the actual menu will be auto-generated by Streamlit
+        st.caption("Select a page from the menu above")
+        
         st.markdown("---")
         
-        # Logout button
         if st.button("🚪 Logout", use_container_width=True):
             auth.logout()
             st.rerun()
@@ -131,8 +181,8 @@ with st.sidebar:
         st.info("👋 Please log in")
         
         st.markdown("""
-        <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin: 10px 0;">
-            <p style="color: rgba(255,255,255,0.5); margin: 0; font-size: 0.7rem;">
+        <div style="background: #f0f5ff; padding: 10px; border-radius: 8px; margin: 10px 0; border: 1px solid #d6e4ff;">
+            <p style="color: #555; margin: 0; font-size: 0.7rem;">
             🔑 demo@drivebd.gov.bd<br>
             🔑 admin@drivebd.gov.bd
             </p>
@@ -203,5 +253,4 @@ else:
                         else:
                             st.error(msg)
 
-st.divider()
-st.caption("DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data")
+st.markdown('<div class="footer">DriveBD Capstone Project · Built with Streamlit · Not affiliated with BRTA · All data is mock/demo data</div>', unsafe_allow_html=True)

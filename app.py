@@ -23,7 +23,7 @@ div.stButton > button:hover {background-color: #0847C4; color: white;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---- SIDEBAR (Only user info + logout, NO navigation) ----
+# ---- SIDEBAR (ONLY user info + logout - NO navigation links) ----
 with st.sidebar:
     st.markdown("### 🚗 DriveBD")
     st.markdown("---")

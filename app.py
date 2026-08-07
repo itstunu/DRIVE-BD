@@ -2,6 +2,7 @@ import streamlit as st
 from db import init_db
 import auth
 
+# ---- MUST BE FIRST STREAMLIT COMMAND ----
 st.set_page_config(
     page_title="DriveBD - Smart Driver & Vehicle Portal",
     page_icon="🚗",
@@ -9,9 +10,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ---- Initialize Database ----
 init_db()
 
-# ---- HIDE SHUDHU "VIEW LESS" AR TITLE ----
+# ---- HIDE ONLY "VIEW LESS" AND SIDEBAR TITLE ----
 st.markdown("""
 <style>
     /* Hide "View less" button */
@@ -24,7 +26,7 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hide Streamlit er automatic navigation */
+    /* Hide Streamlit's default navigation */
     .stSidebarNav {
         display: none !important;
     }
@@ -57,7 +59,7 @@ st.markdown("""
 
 # ---- SIDEBAR ----
 with st.sidebar:
-    # SHUDHU MENU - KICHU TITLE NEI
+    # NO TITLE - just the menu
     st.markdown("**app**")
     
     pages = {
